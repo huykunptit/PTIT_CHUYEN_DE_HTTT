@@ -1,243 +1,163 @@
-@extends('admin.layout')
+@extends('layouts.admin')
+
+@section('title', 'Dashboard - Admin Panel')
+@section('page-title', 'Dashboard')
 
 @section('content')
-    <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
-    <div class="row">
-        <!-- Earnings (Monthly) Card Example -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Movies</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $numOfMovies }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-film fa-2x text-gray-300"></i>
-                        </div>
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title text-white-50">Tổng doanh thu</h6>
+                        <h3 class="text-white">₫0</h3>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Shows</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $numOfShows }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-compact-disc fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Customers</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $numOfCustomers }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pending Requests Card Example -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Manager Requests</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $managerRequestsCount }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-tie fa-2x text-gray-300"></i>
-                        </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-dollar-sign fa-2x text-white-50"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="row">
-
-        <!-- Bar Chart -->
-        <div class="col-xl-8 col-lg-7">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Manager Requests</h6>
-                </div>
-                <div class="card-body">
-                    <div class="chart-bar">
-                        <canvas id="admin-bar-chart"></canvas>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title text-white-50">Vé đã bán</h6>
+                        <h3 class="text-white">0</h3>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pie Chart -->
-        <div class="col-xl-4 col-lg-5">
-            <div class="card shadow mb-4">
-                <!-- Card Header - Dropdown -->
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Users Breakdown</h6>
-                </div>
-                <!-- Card Body -->
-                <div class="card-body">
-                    <div class="chart-pie pt-4 pb-2">
-                        <canvas id="admin-pie-chart"></canvas>
-                    </div>
-                    <div class="mt-4 text-center small">
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-primary"></i> Admin
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-success"></i> Manger
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-info"></i> Customers
-                        </span>
+                    <div class="align-self-center">
+                        <i class="fas fa-ticket-alt fa-2x text-white-50"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title text-white-50">Số phim</h6>
+                        <h3 class="text-white">0</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-film fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title text-white-50">Số rạp</h6>
+                        <h3 class="text-white">0</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-building fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Thao tác nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ route('admin.movies.create') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-plus me-2"></i>Thêm phim mới
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ route('admin.cinemas.create') }}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-plus me-2"></i>Thêm rạp mới
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ route('admin.showtimes.create') }}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-plus me-2"></i>Tạo lịch chiếu
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline-warning w-100">
+                            <i class="fas fa-list me-2"></i>Xem đặt vé
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Bookings -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-ticket-alt me-2"></i>Đặt vé gần đây
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã đặt vé</th>
+                                <th>Khách hàng</th>
+                                <th>Phim</th>
+                                <th>Số vé</th>
+                                <th>Trạng thái</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                    Chưa có đặt vé nào
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Thống kê
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <i class="fas fa-chart-pie text-muted" style="font-size: 4rem;"></i>
+                    <p class="text-muted mt-3">Chưa có dữ liệu thống kê</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
-
-@push('foot')
-    <script src="{{ asset('js/chart.js/Chart.min.js') }}"></script>
-
-    <script>
-        // Set new default font family and font color to mimic Bootstrap's default styling
-        Chart.defaults.global.defaultFontFamily = 'Nunito',
-            '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-        Chart.defaults.global.defaultFontColor = '#858796';
-
-        @php
-            use App\Models\Role;
-            $users = \App\Models\User::all();
-            $adminUsers = $users->where('role_id', Role::ADMIN_CODE)->count();
-            $managerUsers = $users->where('role_id', Role::MANAGER_CODE)->count();
-            $customerUsers = $users->where('role_id', Role::CUSTOMER_CODE)->count();
-            $managerRequests = $users->where('wants_manager', true)->count();
-        @endphp
-        // Pie Chart Example
-        var pieCtx = document.getElementById("admin-pie-chart");
-        var myPieChart = new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ["Admin", "Manager", "Customer"],
-                datasets: [{
-                    data: [@json($adminUsers), @json($managerUsers),
-                        @json($customerUsers)
-                    ],
-                    backgroundColor: ['#9352b3', '#1cc88a', '#36b9cc'],
-                    hoverBackgroundColor: ['#703e88', '#17a673', '#2c9faf'],
-                    hoverBorderColor: "rgba(234, 236, 244, 1)",
-                }],
-            },
-            options: {
-                maintainAspectRatio: false,
-                tooltips: {
-                    backgroundColor: "rgb(255,255,255)",
-                    bodyFontColor: "#858796",
-                    borderColor: '#dddfeb',
-                    borderWidth: 1,
-                    xPadding: 15,
-                    yPadding: 15,
-                    displayColors: false,
-                    caretPadding: 10,
-                },
-                legend: {
-                    display: false
-                },
-                cutoutPercentage: 80,
-            },
-        });
-
-        var barCtx = document.getElementById("admin-bar-chart");
-        var myBarChart = new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: ["Managers", "Customers", "Manager Requests"],
-                datasets: [{
-                    label: "Count",
-                    backgroundColor: "#4e73df",
-                    hoverBackgroundColor: "#2e59d9",
-                    borderColor: "#4e73df",
-                    data: [@json($managerUsers), @json($customerUsers),
-                        @json($managerRequests)
-                    ],
-                }],
-            },
-            options: {
-                maintainAspectRatio: false,
-                layout: {
-                    padding: {
-                        left: 10,
-                        right: 25,
-                        top: 25,
-                        bottom: 0
-                    }
-                },
-                scales: {
-                    xAxes: [{
-                        time: {
-                            unit: 'month'
-                        },
-                        gridLines: {
-                            display: false,
-                            drawBorder: false
-                        },
-                        ticks: {
-                            maxTicksLimit: 6
-                        },
-                        maxBarThickness: 25,
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            min: 0,
-                            max: @js(max($managerUsers, $customerUsers, $managerRequests)),
-                            maxTicksLimit: 5,
-                            padding: 10,
-                        },
-                        gridLines: {
-                            color: "rgb(234, 236, 244)",
-                            zeroLineColor: "rgb(234, 236, 244)",
-                            drawBorder: false,
-                            borderDash: [2],
-                            zeroLineBorderDash: [2]
-                        }
-                    }],
-                },
-                legend: {
-                    display: false
-                },
-                tooltips: {
-                    titleMarginBottom: 10,
-                    titleFontColor: '#6e707e',
-                    titleFontSize: 14,
-                    backgroundColor: "rgb(255,255,255)",
-                    bodyFontColor: "#858796",
-                    borderColor: '#dddfeb',
-                    borderWidth: 1,
-                    xPadding: 15,
-                    yPadding: 15,
-                    displayColors: false,
-                    caretPadding: 10,
-                },
-            }
-        });
-    </script>
-@endpush

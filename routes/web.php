@@ -1,92 +1,53 @@
 <?php
 
-use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\LeadController;
-use App\Http\Controllers\ManagerMovieController;
-use App\Http\Controllers\ManagerShowController;
-use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\SessionController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\UserMovieController;
-use App\Models\Movie;
-use App\Models\Role;
-use App\Models\Show;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\MovieController;
+use App\Http\Controllers\Frontend\BookingController;
+use App\Http\Controllers\Frontend\PaymentController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MovieController as AdminMovieController;
+use App\Http\Controllers\Admin\CinemaController;
+use App\Http\Controllers\Admin\ShowtimeController;
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Api\MovieApiController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
- */
+// Auth Routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
 
-Route::get('/', function () {
-    $movies = Movie::all()->collect();
-    return view('home.home', [
-        'top4movies' => $movies->sortByDesc('rating')->take(4),
-        'newest_movies' => $movies->sortByDesc('release_date')->take(6),
-    ]);
-})->name('home');
+// Frontend Routes
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
+Route::get('/movies/{movie}', [MovieController::class, 'show'])->name('movies.show');
+Route::get('/booking/{showtime}', [BookingController::class, 'create'])->name('booking.create');
+Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+Route::get('/payment/{booking}', [PaymentController::class, 'index'])->name('payment.index');
+Route::post('/payment/vnpay', [PaymentController::class, 'vnpay'])->name('payment.vnpay');
+Route::get('/payment/vnpay/return', [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
 
-Route::get('/contact', function () {
-    return view('pages.contact-us');
-})->name('contact-us');
-
-// Login/Register routes
-Route::middleware('guest')->group(function () {
-    Route::post('login', [SessionController::class, 'store']);
-    Route::get('login', function () {
-        return view('auth.login');
-    })->name('login');
-
-    Route::post('register', [UserController::class, 'store'])->name('register');
-    Route::get('register', function () {
-        return view('auth.register', [
-            'roles' => Role::all()->collect()->whereNotIn('code', Role::ADMIN_CODE),
-        ]);
-    })->name('register');
-});
-Route::post('logout', [SessionController::class, 'destroy'])->name('logout')->middleware('auth');
-
-// Leads
-Route::post('leads', [LeadController::class, 'store'])->middleware('guest')->name('leads');
-
-// User Movies
-Route::resource('movies', UserMovieController::class, ['only' => [
-    'index', 'show',
-]]);
-
-// User Shows
-Route::get('json/shows/{show}', function (Show $show) {
-    $ret = $show->load('room')->toArray();
-    $ret['reservations'] = $show->reservationsSeats()->map(fn ($i) => intval($i));
-    return $ret;
+// Admin Routes
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('movies', AdminMovieController::class);
+    Route::resource('cinemas', CinemaController::class);
+    Route::resource('showtimes', ShowtimeController::class);
+    Route::resource('bookings', AdminBookingController::class);
 });
 
-// Reservations
-Route::resource('reservations', ReservationController::class)->middleware('auth');
-
-// Dashboard
-Route::get('/dashboard', [UserController::class, 'dashboard'])->middleware('auth')->name('dashboard');
-
-// Admin Panel
-Route::group(['prefix' => 'admin', 'middleware' => 'can:admin'], function () {
-    Route::resource('users', AdminUserController::class);
-    Route::get('manager-requests', [AdminUserController::class, 'managerRequests'])->name('users.manager-requests');
-    Route::get('dashboard', [AdminUserController::class, 'dashboard'])->name('admin.dashboard');
-});
-
-// Manager Movie
-Route::group(['prefix' => 'manager', 'middleware' => 'can:manager', 'as' => 'manager.'], function () {
-    Route::resource('movies', ManagerMovieController::class);
-    Route::get('dashboard', [ManagerMovieController::class, 'dashboard'])->name('dashboard');
-});
-
-// Manager Shows
-Route::group(['prefix' => 'manager', 'middleware' => 'can:manager', 'as' => 'manager.'], function () {
-    Route::resource('shows', ManagerShowController::class);
+// API Routes
+Route::prefix('api/movies')->name('api.movies.')->group(function () {
+    Route::get('/now-playing', [MovieApiController::class, 'nowPlaying'])->name('now-playing');
+    Route::get('/upcoming', [MovieApiController::class, 'upcoming'])->name('upcoming');
+    Route::get('/popular', [MovieApiController::class, 'popular'])->name('popular');
+    Route::get('/search', [MovieApiController::class, 'search'])->name('search');
+    Route::get('/genres', [MovieApiController::class, 'genres'])->name('genres');
+    Route::get('/genre/{genreId}', [MovieApiController::class, 'byGenre'])->name('by-genre');
+    Route::get('/{movieId}', [MovieApiController::class, 'show'])->name('show');
+    Route::post('/clear-cache', [MovieApiController::class, 'clearCache'])->name('clear-cache');
 });

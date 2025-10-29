@@ -1,114 +1,70 @@
-<html lang="en">
-@include('layouts.head')
+@extends('layouts.app')
 
-<body>
+@section('title', 'Đăng nhập - Cinema')
 
-    <!-- =============== START OF WRAPPER =============== -->
-    <div class="wrapper">
-        <main class="login-register-page"
-            style="background-image: url({{ asset('images/branding/posters/movie-collection.webp') }})">
-            <div class="container">
+@section('content')
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle text-primary" style="font-size: 3rem;"></i>
+                        <h3 class="mt-3">Đăng nhập</h3>
+                        <p class="text-muted">Đăng nhập để đặt vé xem phim</p>
+                    </div>
 
-                <!-- =============== START OF LOGIN & REGISTER POPUP =============== -->
-                <div class="small-dialog login-register">
-
-                    <!-- ===== Start of Signin wrapper ===== -->
-                    <div class="signin-wrapper">
-                        <div class="small-dialog-headline">
-                            <h4 class="text-center">Sign in</h4>
-                        </div>
-
-
-                        <div class="small-dialog-content">
-
-                            <!-- Start of Login form -->
-                            <form id="login_form" method="post" action="login">
-                                @csrf
-
-                                <div class="form-group">
-                                    <label for="email">Email*</label>
-                                    <input type="text" class="form-control" id="email" name="email"
-                                        placeholder="Your Email *" required />
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="password">Password*</label>
-                                    <input type="password" class="form-control" id="password" name="password"
-                                        placeholder="Your Password *" required />
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="checkbox pad-bottom-10">
-                                        <input id="remember-me" type="checkbox" name="remember-me" value="yes">
-                                        <label for="remember-me">Keep me signed in</label>
-                                    </div>
-                                </div>
-
-                                @include('components.error-message', ['field_name' => 'email'])
-                                <div class="form-group">
-                                    <input type="submit" value="Sign in" class="btn btn-main btn-effect nomargin" />
-                                </div>
-                            </form>
-                            <!-- End of Login form -->
-
-                            <div class="bottom-links">
-                                <span>
-                                    Not a member?
-                                    <a href="{{ route('register') }}">Sign up</a>
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
                                 </span>
+                                <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                       id="email" name="email" value="{{ old('email') }}" required>
                             </div>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                    </div>
-                    <!-- ===== End of Signin wrapper ===== -->
-
-
-
-
-                    <!-- ===== Start of Forget Password wrapper ===== -->
-                    <div class="forgetpassword-wrapper">
-                        <div class="small-dialog-headline">
-                            <h4 class="text-center">Forgotten Password</h4>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                                       id="password" name="password" required>
+                            </div>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        <div class="small-dialog-content">
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">
+                                Ghi nhớ đăng nhập
+                            </label>
+                        </div>
 
-                            <!-- Start of Forger Password form -->
-                            <form id="forget_pass_form" action="#" method="post">
-                                <p class="status"></p>
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                        </button>
+                    </form>
 
-                                <div class="form-group">
-                                    <label for="password">Email Address *</label>
-                                    <input type="email" name="user_login" class="form-control" id="email3"
-                                        placeholder="Email Address *" />
-                                </div>
-
-                                <div class="form-group">
-                                    <input type="submit" name="submit" value="Get New Password"
-                                        class="btn btn-main btn-effect nomargin" />
-                                </div>
-                            </form>
-                            <!-- End of Forger Password form -->
-
-                            <div class="bottom-links">
-                                <a class="cancelClick">Cancel</a>
-                            </div>
-
-                        </div><!-- .small-dialog-content -->
-
+                    <div class="text-center">
+                        <p class="mb-0">Chưa có tài khoản? 
+                            <a href="{{ route('register') }}" class="text-decoration-none">Đăng ký ngay</a>
+                        </p>
                     </div>
-                    <!-- ===== End of Forget Password wrapper ===== -->
-
                 </div>
-                <!-- =============== END OF LOGIN & REGISTER POPUP =============== -->
-
-                <a href={{ route('home') }} class="text-white">Back to Home</a>
             </div>
-        </main>
+        </div>
     </div>
-    <!-- =============== END OF WRAPPER =============== -->
-
-    @include('layouts.includes')
-</body>
-
-</html>
+</div>
+@endsection

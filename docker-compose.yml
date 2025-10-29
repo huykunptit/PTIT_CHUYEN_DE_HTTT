@@ -1,0 +1,120 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile   
+    container_name: cinema_app
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:mDGq2A9EQ0cSSCCbVAJakfdayHQ2odYjeb3wW+wCc/Y=
+      APP_URL: http://localhost:8089
+      DB_HOST: mysql
+      DB_DATABASE: cinemat
+      DB_USERNAME: cinemat
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "9000:9000"
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: cinema_nginx
+    ports:
+      - "8089:80"  
+    volumes:
+      - ./:/var/www/html:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: cinema_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: cinema
+      MYSQL_USER: cinema
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u", "root", "-psecret"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: cinema_redis
+    ports:
+      - "6379:6379"
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cinema_queue
+    command: php artisan queue:work --sleep=3 --tries=3
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:your-app-key-here
+      APP_URL: http://localhost:8089
+      DB_HOST: mysql
+      DB_DATABASE: cinema
+      DB_USERNAME: cinema
+      DB_PASSWORD: secret
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - app
+      - redis
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cinema_scheduler
+    command: sh -c "while :; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:your-app-key-here
+      APP_URL: http://localhost:8089
+      DB_HOST: mysql
+      DB_DATABASE: cinema
+      DB_USERNAME: cinema
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - app
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: cinema_phpmyadmin
+    environment:
+      PMA_HOST: mysql  
+      PMA_USER: root    
+      PMA_PASSWORD: secret 
+    ports:
+      - "8081:80"   
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:

@@ -1,152 +1,109 @@
-<html lang="en">
-@include('layouts.head')
+@extends('layouts.app')
 
-<body>
+@section('title', 'Đăng ký - Cinema')
 
-    <!-- =============== START OF WRAPPER =============== -->
-    <div class="wrapper">
-        <main class="login-register-page"
-            style="background-image: url({{ asset('images/branding/posters/movie-collection.webp') }})">
-            <div class="container">
+@section('content')
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-plus text-primary" style="font-size: 3rem;"></i>
+                        <h3 class="mt-3">Đăng ký tài khoản</h3>
+                        <p class="text-muted">Tạo tài khoản để đặt vé xem phim</p>
+                    </div>
 
-                <!-- =============== START OF LOGIN & REGISTER POPUP =============== -->
-                <div class="small-dialog login-register">
-
-                    <!-- ===== Start of Signup wrapper ===== -->
-                    <div>
-                        <div class="small-dialog-headline">
-                            <h4 class="text-center">Sign Up</h4>
-                        </div>
-
-                        <div class="small-dialog-content">
-
-                            <!-- Start of Registration form -->
-                            <form id="registration_form" action="/register" method="POST">
-                                @csrf
-
-                                <p class="status"></p>
-
-                                <div class="row">
-                                    <div class="form-group col-6">
-                                        <label for="first_name">First Name*</label>
-                                        <input name="first_name" id="first_name" class="form-control" type="text"
-                                            value="{{ old('first_name') }}" required />
-                                        @include('components.error-message', [
-                                            'field_name' => 'first_name',
-                                        ])
-                                    </div>
-                                    <div class="form-group col-6">
-                                        <label for="last_name">Last Name</label>
-                                        <input name="last_name" id="last_name" class="form-control" type="text"
-                                            value="{{ old('last_name') }}" />
-                                        @include('components.error-message', ['field_name' => 'last_name'])
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="username">Username*</label>
-                                    <input name="username" id="username" class="form-control" type="text"
-                                        value="{{ old('username') }}" required />
-                                    @include('components.error-message', ['field_name' => 'username'])
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="email">Email*</label>
-                                    <input name="email" id="email" class="form-control" type="email"
-                                        value="{{ old('email') }}" required />
-                                    @include('components.error-message', ['field_name' => 'email'])
-                                </div>
-
-                                <div class="row">
-                                    <div class="form-group col-6">
-                                        <label for="password">Password*</label>
-                                        <input name="password" id="password" class="form-control" type="password"
-                                            required />
-                                        @include('components.error-message', ['field_name' => 'password'])
-                                    </div>
-
-                                    <div class="form-group col-6">
-                                        <label for="password_confirmation">ReEnter Password*</label>
-                                        <input name="password_confirmation" id="password_confirmation"
-                                            class="form-control" type="password" required />
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="role_id">Role*</label>
-                                    <select name="role_id" id="role_id" required>
-                                        @foreach ($roles as $role)
-                                            <option value="{{ $role->id }}"
-                                                {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->title }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @include('components.error-message', ['field_name' => 'role_id'])
-                                </div>
-
-                                <div class="form-group">
-                                    <input type="submit" class="btn btn-main btn-effect nomargin" value="Register" />
-                                </div>
-                            </form>
-                            <!-- End of Registration form -->
-
-                            <div class="bottom-links">
-                                <span>
-                                    Already have an account?
-                                    <a href="{{ route('login') }}">Sign in</a>
+                    <form method="POST" action="{{ route('register') }}">
+                        @csrf
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Họ và tên</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
                                 </span>
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                       id="name" name="name" value="{{ old('name') }}" required>
                             </div>
-
-                        </div> <!-- .small-dialog-content -->
-
-                    </div>
-                    <!-- ===== End of Signup wrapper ===== -->
-
-
-                    <!-- ===== Start of Forget Password wrapper ===== -->
-                    <div class="forgetpassword-wrapper">
-                        <div class="small-dialog-headline">
-                            <h4 class="text-center">Forgotten Password</h4>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        <div class="small-dialog-content">
-
-                            <!-- Start of Forger Password form -->
-                            <form id="forget_pass_form" action="#" method="post">
-                                <p class="status"></p>
-
-                                <div class="form-group">
-                                    <label for="password">Email Address *</label>
-                                    <input type="email" name="user_login" class="form-control" id="email3"
-                                        placeholder="Email Address *" />
-                                </div>
-
-                                <div class="form-group">
-                                    <input type="submit" name="submit" value="Get New Password"
-                                        class="btn btn-main btn-effect nomargin" />
-                                </div>
-                            </form>
-                            <!-- End of Forger Password form -->
-
-                            <div class="bottom-links">
-                                <a class="cancelClick">Cancel</a>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                       id="email" name="email" value="{{ old('email') }}" required>
                             </div>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
-                        </div><!-- .small-dialog-content -->
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Số điện thoại</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-phone"></i>
+                                </span>
+                                <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
+                                       id="phone" name="phone" value="{{ old('phone') }}" required>
+                            </div>
+                            @error('phone')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                                       id="password" name="password" required>
+                            </div>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password_confirmation" class="form-label">Xác nhận mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" 
+                                       id="password_confirmation" name="password_confirmation" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                            <label class="form-check-label" for="terms">
+                                Tôi đồng ý với <a href="#" class="text-decoration-none">điều khoản sử dụng</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-user-plus me-2"></i>Đăng ký
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="mb-0">Đã có tài khoản? 
+                            <a href="{{ route('login') }}" class="text-decoration-none">Đăng nhập ngay</a>
+                        </p>
                     </div>
-                    <!-- ===== End of Forget Password wrapper ===== -->
-
                 </div>
-                <!-- =============== END OF LOGIN & REGISTER POPUP =============== -->
-
-                <a href={{ route('home') }} class="text-white">Back to Home</a>
             </div>
-        </main>
+        </div>
     </div>
-    <!-- =============== END OF WRAPPER =============== -->
-
-    @include('layouts.includes')
-</body>
-
-</html>
+</div>
+@endsection
