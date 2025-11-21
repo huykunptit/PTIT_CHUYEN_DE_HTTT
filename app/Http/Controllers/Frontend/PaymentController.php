@@ -4,11 +4,24 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Ticket;
+use App\Services\VnPayService;
+use App\Events\PaymentSuccess;
+use App\Events\BookingConfirmed;
+use App\Notifications\PaymentSuccessNotification;
+use App\Notifications\BookingConfirmedNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
+    protected $vnpayService;
+
+    public function __construct(VnPayService $vnpayService)
+    {
+        $this->vnpayService = $vnpayService;
+    }
+
     public function index(Booking $booking)
     {
         if ($booking->status !== 'PENDING') {
@@ -24,68 +37,209 @@ class PaymentController extends Controller
             'payment_method' => 'required|in:vnpay_qr,vnpay_atm,vnpay_card',
         ]);
         
-        $vnp_Url = config('services.vnpay.url');
-        $vnp_Returnurl = route('payment.vnpay.return');
-        $vnp_TmnCode = config('services.vnpay.tmn_code');
-        $vnp_HashSecret = config('services.vnpay.hash_secret');
-        
-        $vnp_TxnRef = $booking->booking_code;
-        $vnp_OrderInfo = 'Thanh toan ve xem phim';
-        $vnp_OrderType = 'other';
-        $vnp_Amount = $booking->final_amount * 100; // VNPAY expects amount in cents
+        if ($booking->status !== 'PENDING') {
+            return redirect()->route('home')->with('error', 'Booking không hợp lệ');
+        }
+
+        // Tạo URL thanh toán VNPay
+        $vnp_TxnRef = $booking->booking_code; // Sử dụng booking_code làm mã giao dịch
+        $vnp_Amount = $booking->final_amount;
+        $vnp_OrderInfo = "Thanh toan don hang: " . $booking->booking_code;
+        $vnp_BankCode = $this->vnpayService->getBankCode($request->payment_method);
         $vnp_Locale = 'vn';
-        $vnp_BankCode = '';
-        $vnp_IpAddr = $request->ip();
+
+        $paymentUrl = $this->vnpayService->createPaymentUrl([
+            'vnp_TxnRef' => $vnp_TxnRef,
+            'vnp_Amount' => $vnp_Amount,
+            'vnp_OrderInfo' => $vnp_OrderInfo,
+            'vnp_BankCode' => $vnp_BankCode,
+            'vnp_Locale' => $vnp_Locale,
+            'vnp_IpAddr' => $request->ip(),
+        ]);
+
+        // Lưu payment method vào booking
+        $paymentMethods = [
+            'vnpay_qr' => 'VNPAY QR Code',
+            'vnpay_atm' => 'VNPAY ATM',
+            'vnpay_card' => 'VNPAY Thẻ quốc tế',
+        ];
         
-        $inputData = array(
-            "vnp_Version" => "2.1.0",
-            "vnp_TmnCode" => $vnp_TmnCode,
-            "vnp_Amount" => $vnp_Amount,
-            "vnp_Command" => "pay",
-            "vnp_CreateDate" => date('YmdHis'),
-            "vnp_CurrCode" => "VND",
-            "vnp_IpAddr" => $vnp_IpAddr,
-            "vnp_Locale" => $vnp_Locale,
-            "vnp_OrderInfo" => $vnp_OrderInfo,
-            "vnp_OrderType" => $vnp_OrderType,
-            "vnp_ReturnUrl" => $vnp_Returnurl,
-            "vnp_TxnRef" => $vnp_TxnRef,
-        );
-        
-        if (!empty($vnp_BankCode)) {
-            $inputData['vnp_BankCode'] = $vnp_BankCode;
-        }
-        
-        ksort($inputData);
-        $query = '';
-        $i = 0;
-        $hashdata = '';
-        foreach ($inputData as $key => $value) {
-            if ($i == 1) {
-                $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
-            } else {
-                $hashdata .= urlencode($key) . "=" . urlencode($value);
-                $i = 1;
-            }
-            $query .= urlencode($key) . "=" . urlencode($value) . '&';
-        }
-        
-        $vnp_Url = $vnp_Url . "?" . $query;
-        if (isset($vnp_HashSecret)) {
-            $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-            $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
-        }
-        
-        return redirect($vnp_Url);
+        $booking->update([
+            'payment_method' => $paymentMethods[$request->payment_method] ?? 'VNPAY',
+        ]);
+
+        // Redirect đến VNPay
+        return redirect($paymentUrl);
     }
     
+    /**
+     * Trang thanh toán demo (không cần VNPay thật)
+     */
+    public function demo(Request $request, Booking $booking)
+    {
+        if ($booking->status !== 'PENDING') {
+            return redirect()->route('home')->with('error', 'Booking không hợp lệ');
+        }
+        
+        $method = $request->get('method', 'vnpay_qr');
+        
+        return view('frontend.payment.demo', compact('booking', 'method'));
+    }
+    
+    /**
+     * Xử lý thanh toán demo (simulate payment success)
+     */
+    public function processDemo(Request $request, Booking $booking)
+    {
+        if ($booking->status !== 'PENDING') {
+            return redirect()->route('home')->with('error', 'Booking không hợp lệ');
+        }
+        
+        $method = $request->input('method', $request->query('method', 'vnpay_qr'));
+        $action = $request->input('action', $request->query('action', 'success')); // success hoặc cancel
+        
+        if ($action === 'success') {
+            // Simulate payment success
+            $paymentMethods = [
+                'vnpay_qr' => 'VNPAY QR Code',
+                'vnpay_atm' => 'VNPAY ATM',
+                'vnpay_card' => 'VNPAY Thẻ quốc tế',
+            ];
+            
+            $booking->update([
+                'status' => 'CONFIRMED',
+                'payment_method' => $paymentMethods[$method] ?? 'VNPAY',
+                'payment_status' => 'SUCCESS',
+                'payment_details' => [
+                    'transaction_id' => 'DEMO' . strtoupper(\Illuminate\Support\Str::random(12)),
+                    'method' => $method,
+                    'paid_at' => now()->toIso8601String(),
+                ],
+            ]);
+            
+            // Phát vé (Issue ticket) - Cập nhật trạng thái vé
+            $booking->tickets()->update([
+                'status' => 'SOLD',
+            ]);
+            
+            // Redirect đến trang hiển thị vé
+            return redirect()->route('tickets.show', ['booking' => $booking->id])
+                ->with('success', 'Thanh toán thành công! Vui lòng lưu mã vé để check-in.');
+            } else {
+            // User cancelled payment
+            return redirect()->route('payment.index', $booking)
+                ->with('info', 'Bạn đã hủy thanh toán. Vui lòng thanh toán trước khi hết hạn.');
+        }
+    }
+    
+    /**
+     * Xử lý khi VNPay redirect về sau khi thanh toán
+     */
     public function vnpayReturn(Request $request)
     {
-        $vnp_HashSecret = config('services.vnpay.hash_secret');
-        $vnp_SecureHash = $request->vnp_SecureHash;
-        $vnp_TxnRef = $request->vnp_TxnRef;
-        $vnp_Amount = $request->vnp_Amount;
-        
+        // Xác thực chữ ký
+        if (!$this->vnpayService->validateSignature($request)) {
+            Log::error('VNPay return: Invalid signature', $request->all());
+            return redirect()->route('home')->with('error', 'Chữ ký không hợp lệ!');
+        }
+
+        // Lấy dữ liệu từ VNPay
+        $returnData = $this->vnpayService->getReturnData($request);
+        $vnp_TxnRef = $returnData['vnp_TxnRef'];
+        $vnp_ResponseCode = $returnData['vnp_ResponseCode'];
+
+        // Tìm booking theo booking_code
+        $booking = Booking::where('booking_code', $vnp_TxnRef)->first();
+
+        if (!$booking) {
+            Log::error('VNPay return: Booking not found', ['booking_code' => $vnp_TxnRef]);
+            return redirect()->route('home')->with('error', 'Không tìm thấy đơn hàng!');
+        }
+
+        // Kiểm tra số tiền
+        if ($booking->final_amount != $returnData['vnp_Amount']) {
+            Log::error('VNPay return: Amount mismatch', [
+                'booking_amount' => $booking->final_amount,
+                'vnpay_amount' => $returnData['vnp_Amount']
+            ]);
+            return redirect()->route('payment.index', $booking)
+                ->with('error', 'Số tiền thanh toán không khớp!');
+        }
+
+        // Xử lý kết quả thanh toán
+        if ($vnp_ResponseCode == '00') {
+            // Thanh toán thành công
+            if ($booking->status == 'PENDING') {
+                $booking->update([
+                    'status' => 'CONFIRMED',
+                    'payment_status' => 'SUCCESS',
+                    'payment_details' => $returnData['all'],
+                ]);
+
+                // Phát vé (Issue ticket) - Cập nhật trạng thái vé
+                $booking->tickets()->update([
+                    'status' => 'SOLD',
+                ]);
+
+                // Reload booking với relationships
+                $booking->load(['user', 'showtime.movie', 'showtime.room.cinema']);
+
+                // Gửi notification và broadcast event
+                if ($booking->user) {
+                    $booking->user->notify(new PaymentSuccessNotification($booking));
+                    $booking->user->notify(new BookingConfirmedNotification($booking));
+                }
+                
+                // Broadcast events
+                event(new PaymentSuccess($booking));
+                event(new BookingConfirmed($booking));
+
+                Log::info('VNPay return: Payment success', ['booking_id' => $booking->id]);
+
+                return redirect()->route('tickets.show', ['booking' => $booking->id])
+                    ->with('success', 'Thanh toán thành công! Vui lòng lưu mã vé để check-in.');
+            } else {
+                // Booking đã được xử lý trước đó
+                return redirect()->route('tickets.show', ['booking' => $booking->id])
+                    ->with('info', 'Đơn hàng đã được xử lý trước đó.');
+            }
+        } else {
+            // Thanh toán thất bại
+            $booking->update([
+                'payment_status' => 'FAILED',
+                'payment_details' => $returnData['all'],
+            ]);
+
+            $errorMessages = [
+                '07' => 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
+                '09' => 'Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking',
+                '10' => 'Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần',
+                '11' => 'Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch.',
+                '12' => 'Thẻ/Tài khoản bị khóa.',
+                '13' => 'Nhập sai mật khẩu xác thực giao dịch (OTP). Xin vui lòng thực hiện lại giao dịch.',
+                '51' => 'Tài khoản không đủ số dư để thực hiện giao dịch.',
+                '65' => 'Tài khoản đã vượt quá hạn mức giao dịch trong ngày.',
+                '75' => 'Ngân hàng thanh toán đang bảo trì.',
+                '79' => 'Nhập sai mật khẩu thanh toán quá số lần quy định.',
+            ];
+
+            $errorMessage = $errorMessages[$vnp_ResponseCode] ?? 'Thanh toán thất bại!';
+
+            Log::warning('VNPay return: Payment failed', [
+                'booking_id' => $booking->id,
+                'response_code' => $vnp_ResponseCode
+            ]);
+
+            return redirect()->route('payment.index', $booking)
+                ->with('error', $errorMessage);
+        }
+    }
+
+    /**
+     * Xử lý IPN (Instant Payment Notification) từ VNPay
+     */
+    public function vnpayIpn(Request $request)
+    {
         $inputData = array();
         foreach ($request->all() as $key => $value) {
             if (substr($key, 0, 4) == "vnp_") {
@@ -93,37 +247,112 @@ class PaymentController extends Controller
             }
         }
         
-        unset($inputData['vnp_SecureHash']);
-        ksort($inputData);
-        $i = 0;
-        $hashData = '';
-        foreach ($inputData as $key => $value) {
-            if ($i == 1) {
-                $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
-            } else {
-                $hashData = $hashData . urlencode($key) . "=" . urlencode($value);
-                $i = 1;
-            }
+        $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? '';
+        
+        // Xác thực chữ ký
+        if (!$this->vnpayService->validateIpnSignature($inputData, $vnp_SecureHash)) {
+            Log::error('VNPay IPN: Invalid signature', $inputData);
+            return response()->json([
+                'RspCode' => '97',
+                'Message' => 'Invalid signature'
+            ], 200);
         }
-        
-        $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
-        
-        if ($secureHash == $vnp_SecureHash) {
-            if ($request->vnp_ResponseCode == '00') {
-                $booking = Booking::where('booking_code', $vnp_TxnRef)->first();
-                if ($booking) {
+
+        $vnpTranId = $inputData['vnp_TransactionNo'] ?? '';
+        $vnp_BankCode = $inputData['vnp_BankCode'] ?? '';
+        $vnp_Amount = ($inputData['vnp_Amount'] ?? 0) / 100; // Chia 100 vì VNPay gửi số tiền nhân 100
+        $orderId = $inputData['vnp_TxnRef'] ?? '';
+        $vnp_ResponseCode = $inputData['vnp_ResponseCode'] ?? '';
+        $vnp_TransactionStatus = $inputData['vnp_TransactionStatus'] ?? '';
+
+        // Tìm booking
+        $booking = Booking::where('booking_code', $orderId)->first();
+
+        if (!$booking) {
+            Log::error('VNPay IPN: Booking not found', ['booking_code' => $orderId]);
+            return response()->json([
+                'RspCode' => '01',
+                'Message' => 'Order not found'
+            ], 200);
+        }
+
+        // Kiểm tra số tiền
+        if ($booking->final_amount != $vnp_Amount) {
+            Log::error('VNPay IPN: Amount mismatch', [
+                'booking_amount' => $booking->final_amount,
+                'vnpay_amount' => $vnp_Amount
+            ]);
+            return response()->json([
+                'RspCode' => '04',
+                'Message' => 'Invalid amount'
+            ], 200);
+        }
+
+        // Kiểm tra trạng thái booking
+        if ($booking->status != 'PENDING') {
+            Log::info('VNPay IPN: Booking already processed', [
+                'booking_id' => $booking->id,
+                'status' => $booking->status
+            ]);
+            return response()->json([
+                'RspCode' => '02',
+                'Message' => 'Order already confirmed'
+            ], 200);
+        }
+
+        // Xử lý kết quả thanh toán
+        if ($vnp_ResponseCode == '00' && $vnp_TransactionStatus == '00') {
+            // Thanh toán thành công
                     $booking->update([
                         'status' => 'CONFIRMED',
-                        'payment_method' => 'VNPAY',
                         'payment_status' => 'SUCCESS',
-                        'payment_details' => $request->all(),
+                'payment_details' => $inputData,
                     ]);
                     
-                    return redirect()->route('home')->with('success', 'Thanh toán thành công!');
-                }
+            // Phát vé (Issue ticket)
+                    $booking->tickets()->update([
+                        'status' => 'SOLD',
+                    ]);
+                    
+            // Reload booking với relationships
+            $booking->load(['user', 'showtime.movie', 'showtime.room.cinema']);
+
+            // Gửi notification và broadcast event
+            if ($booking->user) {
+                $booking->user->notify(new PaymentSuccessNotification($booking));
+                $booking->user->notify(new BookingConfirmedNotification($booking));
             }
+            
+            // Broadcast events
+            event(new PaymentSuccess($booking));
+            event(new BookingConfirmed($booking));
+
+            Log::info('VNPay IPN: Payment success', [
+                'booking_id' => $booking->id,
+                'transaction_id' => $vnpTranId
+            ]);
+
+            return response()->json([
+                'RspCode' => '00',
+                'Message' => 'Confirm Success'
+            ], 200);
+        } else {
+            // Thanh toán thất bại
+            $booking->update([
+                'payment_status' => 'FAILED',
+                'payment_details' => $inputData,
+            ]);
+
+            Log::warning('VNPay IPN: Payment failed', [
+                'booking_id' => $booking->id,
+                'response_code' => $vnp_ResponseCode,
+                'transaction_status' => $vnp_TransactionStatus
+            ]);
+
+            return response()->json([
+                'RspCode' => '00',
+                'Message' => 'Confirm Success'
+            ], 200);
         }
-        
-        return redirect()->route('home')->with('error', 'Thanh toán thất bại!');
     }
 }

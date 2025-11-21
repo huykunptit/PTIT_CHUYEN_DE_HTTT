@@ -36,6 +36,20 @@ return [
         'tmn_code' => env('VNPAY_TMN_CODE'),
         'hash_secret' => env('VNPAY_HASH_SECRET'),
         'return_url' => env('VNPAY_RETURN_URL', 'http://localhost:8089/payment/vnpay/return'),
+        'ipn_url' => env('VNPAY_IPN_URL', 'http://localhost:8089/payment/vnpay/ipn'),
+    ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URL', 'http://localhost:8089/auth/google/callback'),
+    ],
+
+    'speedsms' => [
+        'api_key' => env('SPEEDSMS_API_KEY'),
+        'sender' => env('SPEEDSMS_SENDER'),
+        'type' => env('SPEEDSMS_TYPE', 2),
+        'enabled' => env('SPEEDSMS_ENABLED', false),
     ],
 
 ];

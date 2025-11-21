@@ -9,69 +9,165 @@
     <link href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #ff6b35;
-            --secondary-color: #f7931e;
-            --dark-bg: #0a0a0a;
-            --card-bg: #1a1a1a;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --accent-color: #ffd700;
+            --primary-color: #0052cc;
+            --secondary-color: #0a84ff;
+            --dark-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #4b5563;
+            --accent-color: #ff4d4f;
+        }
+
+        * {
+            scroll-behavior: smooth;
         }
 
         body {
-            background-color: var(--dark-bg);
+            background-color: #f5f7fb;
             color: var(--text-primary);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Smooth fade-in animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.6s ease-out;
         }
 
         /* Header Styles */
         .navbar {
-            background: rgba(10, 10, 10, 0.95) !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .navbar-brand {
-            font-weight: bold;
+            font-weight: 700;
             font-size: 1.8rem;
             color: var(--primary-color) !important;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            color: var(--secondary-color) !important;
         }
 
         .navbar-brand .tagline {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--text-secondary);
             display: block;
             margin-top: -5px;
         }
 
         .search-bar {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #f0f4ff;
+            border: 1px solid rgba(0, 82, 204, 0.2);
             border-radius: 25px;
-            color: white;
+            color: var(--text-primary);
             padding: 10px 20px;
             width: 300px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .search-bar::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: #94a3b8;
+            transition: opacity 0.3s ease;
         }
 
         .search-bar:focus {
-            background: rgba(255, 255, 255, 0.15);
+            background: #ffffff;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
-            color: white;
+            box-shadow: 0 0 0 0.2rem rgba(0, 82, 204, 0.15), 0 4px 12px rgba(0, 82, 204, 0.1);
+            color: var(--text-primary);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .search-bar:focus::placeholder {
+            opacity: 0.5;
         }
 
         .nav-link {
-            color: var(--text-primary) !important;
-            font-weight: 500;
-            transition: color 0.3s ease;
+            color: var(--text-secondary) !important;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(-50%);
         }
 
         .nav-link:hover {
             color: var(--primary-color) !important;
+            transform: translateY(-2px);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
         }
 
         /* Hero Section */
@@ -102,14 +198,14 @@
         .movie-title {
             font-size: 3.5rem;
             font-weight: bold;
-            color: var(--accent-color);
+            color: #ffffff;
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
         .movie-subtitle {
             font-size: 1.2rem;
-            color: var(--text-secondary);
+            color: #ffffff;
             margin-bottom: 1.5rem;
         }
 
@@ -121,16 +217,17 @@
         }
 
         .meta-badge {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.9);
             padding: 0.3rem 0.8rem;
             border-radius: 15px;
             font-size: 0.9rem;
             font-weight: 500;
+            color: var(--text-primary);
         }
 
         .imdb-badge {
             background: var(--accent-color);
-            color: var(--dark-bg);
+            color: #000000;
         }
 
         .movie-genres {
@@ -173,9 +270,9 @@
         }
 
         .action-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: var(--text-primary);
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -183,14 +280,14 @@
         }
 
         .action-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 1);
             transform: scale(1.1);
         }
 
         /* Categories Section */
         .categories-section {
             padding: 4rem 0;
-            background: var(--dark-bg);
+            background: #ffffff;
         }
 
         .section-title {
@@ -198,6 +295,7 @@
             font-weight: bold;
             margin-bottom: 2rem;
             text-align: center;
+            color: var(--text-primary);
         }
 
         .categories-grid {
@@ -213,10 +311,11 @@
             padding: 2rem;
             text-align: center;
             color: white;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 82, 204, 0.15);
         }
 
         .category-card::before {
@@ -226,18 +325,36 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
+        }
+
+        .category-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
         }
 
         .category-card:hover::before {
             opacity: 1;
         }
 
+        .category-card:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
         .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 12px 40px rgba(0, 82, 204, 0.3);
         }
 
         .category-card h3 {
@@ -301,28 +418,59 @@
 
         .movie-card {
             min-width: 200px;
-            background: var(--card-bg);
-            border-radius: 10px;
+            background: #ffffff;
+            border-radius: 12px;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .movie-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 82, 204, 0.05), rgba(10, 132, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 1;
         }
 
         .movie-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 32px rgba(0, 82, 204, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .movie-card:hover::before {
+            opacity: 1;
+        }
+
+        .movie-card * {
+            position: relative;
+            z-index: 2;
         }
 
         .movie-poster {
             width: 100%;
             height: 280px;
             object-fit: cover;
-            background: var(--card-bg);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-secondary);
             font-size: 3rem;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .movie-card:hover .movie-poster {
+            transform: scale(1.1);
         }
 
         .movie-info {
@@ -354,15 +502,119 @@
         }
 
         .year-badge {
-            background: rgba(255, 255, 255, 0.2);
+            background: #e9ecef;
             color: var(--text-primary);
         }
 
         /* Footer */
         .footer {
-            background: var(--card-bg);
+            background: #ffffff;
             padding: 3rem 0 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid #dee2e6;
+        }
+
+        /* Button improvements */
+        .btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 82, 204, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Card improvements */
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            transform: translateY(-4px);
+        }
+
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* Alert improvements */
+        .alert {
+            animation: slideInRight 0.4s ease-out;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dropdown improvements */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .dropdown-item {
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(90deg, rgba(0, 82, 204, 0.1), rgba(10, 132, 255, 0.1));
+            transform: translateX(5px);
         }
 
         /* Responsive */
@@ -388,13 +640,17 @@
             .movie-card {
                 min-width: 150px;
             }
+
+            .nav-link::after {
+                display: none;
+            }
         }
     </style>
     @yield('styles')
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
                 <i class="fas fa-film me-2"></i>Cinema
@@ -440,12 +696,69 @@
                         <a class="nav-link" href="#">Tải ứng dụng Cinema</a>
                     </li>
                     @auth
+                        @if(Auth::user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link text-danger fw-bold" href="{{ route('admin.dashboard') }}">
+                                    <i class="fas fa-crown me-1"></i>Admin Panel
+                                </a>
+                            </li>
+                        @elseif(Auth::user()->role === 'staff')
+                            <li class="nav-item">
+                                <a class="nav-link text-primary fw-bold" href="{{ route('staff.dashboard') }}">
+                                    <i class="fas fa-user-tie me-1"></i>Staff Panel
+                                </a>
+                            </li>
+                        @endif
+                        <li class="nav-item dropdown">
+                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" id="notification-dropdown">
+                                <i class="fas fa-bell"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notification-badge" style="display: none;"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+                                <li><h6 class="dropdown-header">Thông báo</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li id="notifications-list">
+                                    <div class="text-center text-muted p-3">
+                                        <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                                        <p class="mb-0">Chưa có thông báo</p>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-center" href="#" id="mark-all-read">Đánh dấu tất cả đã đọc</a></li>
+                            </ul>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-user me-1"></i>{{ Auth::user()->name }}
+                                @if(Auth::user()->role === 'admin')
+                                    <span class="badge bg-danger ms-1">Admin</span>
+                                @elseif(Auth::user()->role === 'staff')
+                                    <span class="badge bg-primary ms-1">Staff</span>
+                                @endif
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-ticket-alt me-2"></i>Vé của tôi</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                @if(Auth::user()->role === 'admin')
+                                    <li>
+                                        <a class="dropdown-item text-primary fw-bold" href="{{ route('admin.dashboard') }}">
+                                            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                @elseif(Auth::user()->role === 'staff')
+                                    <li>
+                                        <a class="dropdown-item text-primary fw-bold" href="{{ route('staff.dashboard') }}">
+                                            <i class="fas fa-tachometer-alt me-2"></i>Staff Dashboard
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('staff.checkin.show') }}">
+                                            <i class="fas fa-qrcode me-2"></i>Check-in
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                @endif
+                                <li><a class="dropdown-item" href="{{ route('my-tickets.index') }}"><i class="fas fa-ticket-alt me-2"></i>Vé của tôi</a></li>
+                                <li><a class="dropdown-item" href="{{ route('checkin.show') }}"><i class="fas fa-qrcode me-2"></i>Check-in</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
@@ -561,14 +874,48 @@
             });
         });
 
-        // Navbar background on scroll
+        // Navbar background on scroll with smooth transition
+        let lastScroll = 0;
         window.addEventListener('scroll', function() {
             const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.style.background = 'rgba(10, 10, 10, 0.98)';
+            const currentScroll = window.scrollY;
+            
+            if (currentScroll > 50) {
+                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+                navbar.style.boxShadow = '0 4px 20px rgba(15, 23, 42, 0.1)';
+                navbar.style.backdropFilter = 'blur(10px)';
             } else {
-                navbar.style.background = 'rgba(10, 10, 10, 0.95)';
+                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+                navbar.style.boxShadow = '0 4px 20px rgba(15, 23, 42, 0.04)';
             }
+            
+            lastScroll = currentScroll;
+        });
+
+        // Fade in elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards and sections
+        document.addEventListener('DOMContentLoaded', function() {
+            const elementsToAnimate = document.querySelectorAll('.movie-card, .category-card, section');
+            elementsToAnimate.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(el);
+            });
         });
 
         // Search functionality
@@ -584,6 +931,157 @@
             });
         }
     </script>
+
+    <!-- Pusher for Realtime Notifications -->
+    @auth
+    @if(config('broadcasting.default') === 'pusher' && config('broadcasting.connections.pusher.key'))
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script>
+        try {
+            // Initialize Pusher
+            const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
+                cluster: '{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}',
+                encrypted: true,
+                authEndpoint: '/broadcasting/auth',
+                auth: {
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                }
+            });
+
+            // Subscribe to user notifications channel
+            const userId = {{ auth()->id() }};
+            const notificationsChannel = pusher.subscribe('private-notifications.' + userId);
+            
+            // Listen for notifications
+            notificationsChannel.bind('booking.confirmed', function(data) {
+                showNotification('success', data.message, data.booking_code);
+                updateNotificationBadge();
+                loadNotifications();
+            });
+
+            notificationsChannel.bind('payment.success', function(data) {
+                showNotification('success', data.message, data.booking_code);
+                updateNotificationBadge();
+                loadNotifications();
+            });
+
+            // Admin notifications
+            @if(auth()->user()->role === 'admin')
+            const adminChannel = pusher.subscribe('private-admin.notifications');
+            adminChannel.bind('booking.confirmed', function(data) {
+                showNotification('info', 'Đặt vé mới: ' + data.booking_code, data.booking_code);
+                updateNotificationBadge();
+                loadNotifications();
+            });
+            adminChannel.bind('payment.success', function(data) {
+                showNotification('info', 'Thanh toán mới: ' + data.booking_code, data.booking_code);
+                updateNotificationBadge();
+                loadNotifications();
+            });
+            @endif
+        } catch (error) {
+            console.error('Pusher initialization error:', error);
+        }
+
+        // Notification display function
+        function showNotification(type, message, bookingCode) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+            notification.innerHTML = `
+                <strong>${type === 'success' ? '✓' : 'ℹ'}</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+
+            // Update notification badge if exists
+            updateNotificationBadge();
+        }
+
+        function updateNotificationBadge() {
+            // Fetch unread notifications count
+            fetch('/api/notifications/unread-count')
+                .then(res => res.json())
+                .then(data => {
+                    const badge = document.getElementById('notification-badge');
+                    if (badge) {
+                        badge.textContent = data.count > 0 ? data.count : '';
+                        badge.style.display = data.count > 0 ? 'inline-block' : 'none';
+                    }
+                })
+                .catch(err => console.error('Error fetching notifications:', err));
+        }
+
+        // Load notifications
+        function loadNotifications() {
+            fetch('/api/notifications')
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('notifications-list');
+                    if (data.length === 0) {
+                        list.innerHTML = `
+                            <div class="text-center text-muted p-3">
+                                <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                                <p class="mb-0">Chưa có thông báo</p>
+                            </div>
+                        `;
+                    } else {
+                        list.innerHTML = data.map(notif => `
+                            <a class="dropdown-item ${notif.read_at ? '' : 'bg-light'}" href="${notif.data.booking_id ? '/tickets/booking/' + notif.data.booking_id : '#'}">
+                                <div class="d-flex justify-content-between">
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted">${new Date(notif.created_at).toLocaleString('vi-VN')}</small>
+                                        <p class="mb-0">${notif.data.message || 'Thông báo mới'}</p>
+                                    </div>
+                                    ${!notif.read_at ? '<span class="badge bg-primary">Mới</span>' : ''}
+                                </div>
+                            </a>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.error('Error loading notifications:', err));
+        }
+
+        // Mark all as read
+        document.getElementById('mark-all-read')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/api/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                updateNotificationBadge();
+                loadNotifications();
+            });
+        });
+
+        // Update badge on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNotificationBadge();
+            loadNotifications();
+            
+            // Refresh notifications every 30 seconds
+            setInterval(() => {
+                updateNotificationBadge();
+                loadNotifications();
+            }, 30000);
+        });
+    </script>
+    @endif
+    @endauth
+
     @yield('scripts')
 </body>
 </html>

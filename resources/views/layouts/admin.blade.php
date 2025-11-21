@@ -6,35 +6,123 @@
     <title>@yield('title', 'Admin Panel - Cinema')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.4/dist/bootstrap-table.min.css">
     <style>
+        :root {
+            --primary-color: #0052cc;
+            --secondary-color: #0a84ff;
+            --accent-color: #ff4d4f;
+            --sidebar-bg: linear-gradient(160deg, #0052cc 0%, #0a84ff 100%);
+            --sidebar-hover: rgba(255, 255, 255, 0.15);
+            --text-primary: #0f172a;
+            --text-muted: #64748b;
+            --surface: #ffffff;
+            --surface-muted: #f5f7fb;
+        }
+
+        * {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--surface-muted);
+            color: var(--text-primary);
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
         .sidebar {
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--sidebar-bg);
+            box-shadow: 6px 0 18px rgba(15, 23, 42, 0.12);
         }
         .sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.85);
             padding: 12px 20px;
-            border-radius: 8px;
-            margin: 2px 0;
-            transition: all 0.3s ease;
+            border-radius: 10px;
+            margin: 4px 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
         }
+
+        .sidebar .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: rgba(255, 255, 255, 0.8);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
-            color: white;
-            background: rgba(255,255,255,0.1);
-            transform: translateX(5px);
+            color: #ffffff;
+            background: var(--sidebar-hover);
+            transform: translateX(8px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+
+        .sidebar .nav-link:hover::before,
+        .sidebar .nav-link.active::before {
+            transform: scaleY(1);
+        }
+
         .main-content {
-            background-color: #f8f9fa;
+            background-color: var(--surface-muted);
             min-height: 100vh;
+        }
+        .top-bar {
+            background: var(--surface);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
         }
         .card {
             border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 18px;
+            background: var(--surface);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+            transform: translateY(-4px);
         }
         .stats-card {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #0052cc, #0a84ff);
             color: white;
+            border: none;
+        }
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        .badge.bg-primary {
+            background: var(--accent-color) !important;
         }
     </style>
     @yield('styles')
@@ -77,6 +165,16 @@
                             <i class="fas fa-ticket-alt me-2"></i>Đặt vé
                         </a>
                         
+                        <a class="nav-link {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}" 
+                           href="{{ route('admin.rooms.index') }}">
+                            <i class="fas fa-door-open me-2"></i>Phòng chiếu
+                        </a>
+                        
+                        <a class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" 
+                           href="{{ route('admin.reports.index') }}">
+                            <i class="fas fa-chart-bar me-2"></i>Báo cáo
+                        </a>
+                        
                         <hr class="text-white">
                         
                         <a class="nav-link" href="{{ route('home') }}">
@@ -98,7 +196,7 @@
             <div class="col-md-9 col-lg-10">
                 <div class="main-content">
                     <!-- Top Bar -->
-                    <div class="bg-white shadow-sm p-3 mb-4">
+                    <div class="top-bar p-3 mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">@yield('page-title', 'Dashboard')</h5>
                             <div class="d-flex align-items-center">
@@ -135,7 +233,12 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.21.4/dist/bootstrap-table.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.21.4/dist/locale/bootstrap-table-vi-VN.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.21.4/dist/extensions/export/bootstrap-table-export.min.js"></script>
+    <script src="https://unpkg.com/tableexport.jquery.plugin@1.28.0/tableExport.min.js"></script>
     @yield('scripts')
 </body>
 </html>

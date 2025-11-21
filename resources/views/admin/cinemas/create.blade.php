@@ -33,7 +33,19 @@
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="city" class="form-label">Khu vực <span class="text-danger">*</span></label>
+                                <select class="form-select @error('city') is-invalid @enderror" id="city" name="city" required>
+                                    <option value="HCM" {{ old('city', 'HCM') === 'HCM' ? 'selected' : '' }}>TP. Hồ Chí Minh</option>
+                                    <option value="HN" {{ old('city') === 'HN' ? 'selected' : '' }}>Hà Nội</option>
+                                </select>
+                                @error('city')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
                                 <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
@@ -43,7 +55,7 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror" 

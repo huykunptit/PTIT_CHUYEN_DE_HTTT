@@ -8,10 +8,12 @@ use Illuminate\Http\Request;
 
 class CinemaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $cinemas = Cinema::paginate(10);
-        return view('admin.cinemas.index', compact('cinemas'));
+        $cinemas = Cinema::orderBy('created_at', 'desc')->get();
+        $selectedCity = $request->get('city');
+
+        return view('admin.cinemas.index', compact('cinemas', 'selectedCity'));
     }
     
     public function create()
@@ -21,16 +23,19 @@ class CinemaController extends Controller
     
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string',
+            'city' => 'required|string|in:HCM,HN',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
         
-        Cinema::create($request->all());
+        $validated['is_active'] = $request->boolean('is_active');
+        
+        Cinema::create($validated);
         
         return redirect()->route('admin.cinemas.index')
             ->with('success', 'Rạp chiếu đã được thêm thành công!');
@@ -48,16 +53,19 @@ class CinemaController extends Controller
     
     public function update(Request $request, Cinema $cinema)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string',
+            'city' => 'required|string|in:HCM,HN',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
         
-        $cinema->update($request->all());
+        $validated['is_active'] = $request->boolean('is_active');
+        
+        $cinema->update($validated);
         
         return redirect()->route('admin.cinemas.index')
             ->with('success', 'Rạp chiếu đã được cập nhật thành công!');

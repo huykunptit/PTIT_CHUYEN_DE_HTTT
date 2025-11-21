@@ -14,84 +14,107 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table id="showtimes-table" 
+                   data-toggle="table"
+                   data-search="true"
+                   data-pagination="true"
+                   data-page-size="10"
+                   data-page-list="[10, 25, 50, 100, all]"
+                   data-show-export="true"
+                   data-export-types="['excel', 'csv']"
+                   data-export-options='{"fileName": "danh-sach-lich-chieu"}'
+                   data-locale="vi-VN"
+                   data-sort-name="date"
+                   data-sort-order="desc">
                 <thead>
                     <tr>
-                        <th>Phim</th>
-                        <th>Rạp</th>
-                        <th>Phòng</th>
-                        <th>Ngày</th>
-                        <th>Giờ chiếu</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
+                        <th data-field="movie_title" data-sortable="true" data-formatter="movieFormatter">Phim</th>
+                        <th data-field="cinema_name" data-sortable="true">Rạp</th>
+                        <th data-field="room_name" data-sortable="true">Phòng</th>
+                        <th data-field="date" data-sortable="true" data-formatter="dateFormatter">Ngày</th>
+                        <th data-field="time" data-sortable="true" data-formatter="timeFormatter">Giờ chiếu</th>
+                        <th data-field="status" data-sortable="true" data-formatter="statusFormatter">Trạng thái</th>
+                        <th data-field="actions" data-formatter="actionsFormatter">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @forelse($showtimes as $showtime)
-                    <tr>
-                        <td>
-                            <strong>{{ $showtime->movie->title }}</strong>
-                            <br>
-                            <small class="text-muted">{{ $showtime->movie->genre }}</small>
-                        </td>
-                        <td>{{ $showtime->room->cinema->name }}</td>
-                        <td>{{ $showtime->room->name }}</td>
-                        <td>{{ $showtime->date->format('d/m/Y') }}</td>
-                        <td>
-                            {{ \Carbon\Carbon::parse($showtime->start_time)->format('H:i') }} - 
-                            {{ \Carbon\Carbon::parse($showtime->end_time)->format('H:i') }}
-                        </td>
-                        <td>
-                            @switch($showtime->status)
-                                @case('ACTIVE')
-                                    <span class="badge bg-success">Hoạt động</span>
-                                    @break
-                                @case('CANCELLED')
-                                    <span class="badge bg-danger">Đã hủy</span>
-                                    @break
-                                @case('COMPLETED')
-                                    <span class="badge bg-secondary">Hoàn thành</span>
-                                    @break
-                            @endswitch
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a href="{{ route('admin.showtimes.show', $showtime) }}" 
-                                   class="btn btn-sm btn-outline-info" title="Xem">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('admin.showtimes.edit', $showtime) }}" 
-                                   class="btn btn-sm btn-outline-warning" title="Sửa">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form method="POST" action="{{ route('admin.showtimes.destroy', $showtime) }}" 
-                                      style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa lịch chiếu này?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            <i class="fas fa-clock fa-2x mb-2"></i><br>
-                            Chưa có lịch chiếu nào
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
             </table>
         </div>
-        
-        @if($showtimes->hasPages())
-        <div class="d-flex justify-content-center">
-            {{ $showtimes->links() }}
-        </div>
-        @endif
     </div>
 </div>
+@endsection
+
+@section('scripts')
+@parent
+@php
+    $showtimesData = $showtimes->map(function ($showtime) {
+        return [
+            'id' => $showtime->id,
+            'movie_title' => $showtime->movie->title,
+            'movie_genre' => $showtime->movie->genre,
+            'cinema_name' => $showtime->room->cinema->name,
+            'room_name' => $showtime->room->name,
+            'date' => $showtime->date->format('Y-m-d'),
+            'date_display' => $showtime->date->format('d/m/Y'),
+            'start_time' => \Carbon\Carbon::parse($showtime->start_time)->format('H:i'),
+            'end_time' => \Carbon\Carbon::parse($showtime->end_time)->format('H:i'),
+            'status' => $showtime->status,
+            'show_url' => route('admin.showtimes.show', $showtime->id),
+            'edit_url' => route('admin.showtimes.edit', $showtime->id),
+            'destroy_url' => route('admin.showtimes.destroy', $showtime->id),
+        ];
+    });
+@endphp
+<script>
+    const csrfToken = '{{ csrf_token() }}';
+    const showtimesData = @json($showtimesData);
+
+    function movieFormatter(value, row) {
+        return `<strong>${value}</strong><br><small class="text-muted">${row.movie_genre}</small>`;
+    }
+
+    function dateFormatter(value, row) {
+        return row.date_display;
+    }
+
+    function timeFormatter(value, row) {
+        return `${row.start_time} - ${row.end_time}`;
+    }
+
+    function statusFormatter(value) {
+        const statusMap = {
+            'ACTIVE': { text: 'Hoạt động', class: 'success' },
+            'CANCELLED': { text: 'Đã hủy', class: 'danger' },
+            'COMPLETED': { text: 'Hoàn thành', class: 'secondary' }
+        };
+        const status = statusMap[value] || { text: value, class: 'secondary' };
+        return `<span class="badge bg-${status.class}">${status.text}</span>`;
+    }
+
+    function actionsFormatter(value, row) {
+        return `<div class="btn-group" role="group">
+            <a href="${row.show_url}" class="btn btn-sm btn-outline-info" title="Xem"><i class="fas fa-eye"></i></a>
+            <a href="${row.edit_url}" class="btn btn-sm btn-outline-warning" title="Sửa"><i class="fas fa-edit"></i></a>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteShowtime(${row.id})" title="Xóa"><i class="fas fa-trash"></i></button>
+        </div>`;
+    }
+
+    function deleteShowtime(id) {
+        const row = showtimesData.find(s => s.id === id);
+        if (row && confirm('Bạn có chắc muốn xóa lịch chiếu này?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = row.destroy_url;
+            form.innerHTML = `
+                <input type="hidden" name="_token" value="${csrfToken}">
+                <input type="hidden" name="_method" value="DELETE">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    $(document).ready(function () {
+        $('#showtimes-table').bootstrapTable('load', showtimesData);
+    });
+</script>
 @endsection

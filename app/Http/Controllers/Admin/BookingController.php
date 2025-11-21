@@ -12,7 +12,8 @@ class BookingController extends Controller
     {
         $bookings = Booking::with(['user', 'showtime.movie', 'showtime.room.cinema', 'tickets'])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->get();
+
         return view('admin.bookings.index', compact('bookings'));
     }
     
@@ -39,6 +40,20 @@ class BookingController extends Controller
         
         return redirect()->route('admin.bookings.index')
             ->with('success', 'Đặt vé đã được cập nhật thành công!');
+    }
+
+    public function updateStatus(Request $request, Booking $booking)
+    {
+        $data = $request->validate([
+            'status' => 'required|in:PENDING,CONFIRMED,CANCELLED,EXPIRED',
+        ]);
+
+        $booking->update($data);
+
+        return response()->json([
+            'message' => 'Cập nhật trạng thái thành công!',
+            'status' => $booking->status,
+        ]);
     }
     
     public function destroy(Booking $booking)

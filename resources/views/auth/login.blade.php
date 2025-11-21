@@ -57,6 +57,20 @@
                         </button>
                     </form>
 
+                    <div class="text-center my-3">
+                        <span class="text-muted">Hoặc</span>
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{{ route('auth.google.redirect') }}" class="btn btn-light border">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20" class="me-2">
+                            Đăng nhập với Google
+                        </a>
+                        <a href="{{ route('login.phone') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-mobile-alt me-2"></i>Đăng nhập với số điện thoại
+                        </a>
+                    </div>
+
                     <div class="text-center">
                         <p class="mb-0">Chưa có tài khoản? 
                             <a href="{{ route('register') }}" class="text-decoration-none">Đăng ký ngay</a>

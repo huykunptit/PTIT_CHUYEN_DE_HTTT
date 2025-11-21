@@ -4,314 +4,153 @@
 
 @section('content')
 <!-- Hero Section -->
-<section class="hero-section" style="background-image: url('https://images.unsplash.com/photo-1489599808082-3b4a0b5a0b5a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')">
-    <div class="hero-overlay"></div>
-    <div class="container">
-        <div class="hero-content">
-            <h1 class="movie-title">Avatar: The Way of Water</h1>
-            <p class="movie-subtitle">Đang chiếu tại rạp</p>
-            
-            <div class="movie-meta">
-                <span class="meta-badge imdb-badge">IMDb 8.5</span>
-                <span class="meta-badge">192 phút</span>
-                <span class="meta-badge">2024</span>
-                <span class="meta-badge">13+</span>
-            </div>
-            
-            <div class="movie-genres">
-                <span class="genre-tag">Sci-Fi</span>
-                <span class="genre-tag">Action</span>
-                <span class="genre-tag">Adventure</span>
-                <span class="genre-tag">IMAX</span>
-                <span class="genre-tag">3D</span>
-            </div>
-            
-            <p class="mb-4">Jake Sully và gia đình của anh ấy khám phá những vùng biển của Pandora, gặp gỡ những sinh vật biển kỳ lạ và khám phá những bí mật của hành tinh này.</p>
-            
-            <div class="hero-actions">
-                <a href="{{ route('movies.index') }}" class="play-btn">
-                    <i class="fas fa-ticket-alt"></i>
+@if($featuredMovie)
+<section class="hero-section mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 500px; display: flex; align-items: center; position: relative; overflow: hidden;">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-white">
+                <h1 class="display-4 fw-bold mb-3">{{ $featuredMovie->title }}</h1>
+                <p class="lead mb-4">{{ Str::limit($featuredMovie->description, 150) }}</p>
+                <div class="d-flex gap-3 mb-4">
+                    <span class="badge bg-warning text-dark">IMDb {{ $featuredMovie->rating }}</span>
+                    <span class="badge bg-light text-dark">{{ $featuredMovie->genre }}</span>
+                    <span class="badge bg-light text-dark">{{ $featuredMovie->release_date->format('Y') }}</span>
+                </div>
+                <a href="{{ route('movies.show', $featuredMovie) }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-ticket-alt me-2"></i>Đặt vé ngay
                 </a>
-                <button class="action-btn">
-                    <i class="fas fa-heart"></i>
-                </button>
-                <button class="action-btn">
-                    <i class="fas fa-share"></i>
-                </button>
             </div>
         </div>
     </div>
+    <div style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; background: rgba(0,0,0,0.3); z-index: 1;"></div>
 </section>
+@endif
 
-<!-- Categories Section -->
-<section class="categories-section">
-    <div class="container">
-        <h2 class="section-title">Trải nghiệm điện ảnh</h2>
-        <div class="categories-grid">
-            <div class="category-card" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
-                <h3>IMAX</h3>
-                <a href="#">Đặt vé IMAX ></a>
-            </div>
-            <div class="category-card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                <h3>4DX</h3>
-                <a href="#">Đặt vé 4DX ></a>
-            </div>
-            <div class="category-card" style="background: linear-gradient(135deg, #10b981, #059669);">
-                <h3>VIP</h3>
-                <a href="#">Ghế VIP ></a>
-            </div>
-            <div class="category-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                <h3>3D</h3>
-                <a href="#">Phim 3D ></a>
-            </div>
-            <div class="category-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                <h3>Combo</h3>
-                <a href="#">Combo bắp nước ></a>
-            </div>
-            <div class="category-card" style="background: linear-gradient(135deg, #f97316, #ea580c);">
-                <h3>Khuyến mãi</h3>
-                <a href="#">Ưu đãi hôm nay ></a>
-            </div>
-            <div class="category-card" style="background: linear-gradient(135deg, #6b7280, #4b5563);">
-                <h3>Rạp gần bạn</h3>
-                <a href="#">Tìm rạp ></a>
-            </div>
+<div class="container">
+    <!-- Phim đang chiếu -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Phim đang chiếu</h2>
+            <a href="{{ route('movies.index') }}" class="text-decoration-none">
+                Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+            </a>
         </div>
-    </div>
-</section>
-
-<!-- Movie Rows -->
-<section class="movie-rows">
-    <div class="container">
-        <!-- Phim đang chiếu -->
-        <div class="movie-row">
-            <div class="row-title">
-                <h3>Phim đang chiếu</h3>
-                <a href="{{ route('movies.index') }}">Xem tất cả ></a>
-            </div>
-            <div class="movies-scroll">
-                @forelse($featuredMovies as $movie)
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
+        <div class="row g-4">
+            @forelse($nowShowingMovies as $movie)
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 250px;">
+                        <i class="fas fa-film text-light" style="font-size: 3rem;"></i>
                     </div>
-                    <div class="movie-info">
-                        <h4>{{ $movie->title }}</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb {{ $movie->rating }}</span>
-                            <span class="badge year-badge">{{ $movie->release_date->year }}</span>
+                    <div class="card-body">
+                        <h6 class="card-title mb-2">{{ Str::limit($movie->title, 30) }}</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">{{ $movie->genre }}</small>
+                            <span class="badge bg-warning text-dark">{{ $movie->rating }}</span>
                         </div>
-                        <div class="mt-2">
-                            <a href="{{ route('movies.show', $movie) }}" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                            </a>
-                        </div>
+                        <a href="{{ route('movies.show', $movie) }}" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-ticket-alt me-1"></i>Đặt vé
+                        </a>
                     </div>
                 </div>
-                @empty
-                
-                {{-- Hiển thị dữ liệu từ API nếu có --}}
-                @if($apiMovies && isset($apiMovies['results']))
-                    @foreach(array_slice($apiMovies['results'], 0, 6) as $apiMovie)
-                    <div class="movie-card">
-                        <div class="movie-poster">
-                            @if(isset($apiMovie['poster_path']))
-                                <img src="https://image.tmdb.org/t/p/w300{{ $apiMovie['poster_path'] }}" 
-                                     alt="{{ $apiMovie['title'] }}" 
-                                     style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            @empty
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-film fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Chưa có phim đang chiếu</p>
+            </div>
+            @endforelse
+        </div>
+    </section>
+
+    <!-- Voucher/Promotion Section -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Voucher & Khuyến mãi</h2>
+        </div>
+        <div class="row g-4">
+            @forelse($promotions as $promotion)
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body text-white">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">{{ $promotion->name }}</h5>
+                                <span class="badge bg-light text-dark">{{ $promotion->code }}</span>
+                            </div>
+                            <i class="fas fa-ticket-alt fa-2x opacity-50"></i>
+                        </div>
+                        <p class="card-text mb-3">{{ Str::limit($promotion->description, 100) }}</p>
+                        <div class="mb-3">
+                            @if($promotion->type === 'PERCENTAGE')
+                                <span class="badge bg-warning text-dark fs-6">
+                                    Giảm {{ $promotion->value }}%
+                                </span>
+                            @elseif($promotion->type === 'FIXED_AMOUNT')
+                                <span class="badge bg-warning text-dark fs-6">
+                                    Giảm {{ number_format($promotion->value, 0, ',', '.') }}₫
+                                </span>
                             @else
-                                <i class="fas fa-film"></i>
+                                <span class="badge bg-warning text-dark fs-6">
+                                    {{ $promotion->name }}
+                                </span>
                             @endif
                         </div>
-                        <div class="movie-info">
-                            <h4>{{ $apiMovie['title'] ?? 'N/A' }}</h4>
-                            <div class="movie-badges">
-                                <span class="badge imdb-badge">IMDb {{ number_format($apiMovie['vote_average'] ?? 0, 1) }}</span>
-                                <span class="badge year-badge">{{ date('Y', strtotime($apiMovie['release_date'] ?? 'now')) }}</span>
-                            </div>
-                            <div class="mt-2">
-                                <a href="#" class="btn btn-sm btn-primary w-100">
-                                    <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                @else
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="movie-info">
-                        <h4>Avatar: The Way of Water</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb 8.5</span>
-                            <span class="badge year-badge">2024</span>
-                        </div>
-                        <div class="mt-2">
-                            <a href="#" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                            </a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="opacity-75">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ $promotion->start_date->format('d/m') }} - {{ $promotion->end_date->format('d/m/Y') }}
+                            </small>
+                            @if($promotion->min_amount)
+                                <small class="opacity-75">
+                                    Đơn tối thiểu: {{ number_format($promotion->min_amount, 0, ',', '.') }}₫
+                                </small>
+                            @endif
                         </div>
                     </div>
                 </div>
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="movie-info">
-                        <h4>Black Panther: Wakanda Forever</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb 8.2</span>
-                            <span class="badge year-badge">2024</span>
-                        </div>
-                        <div class="mt-2">
-                            <a href="#" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="movie-info">
-                        <h4>Top Gun: Maverick</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb 8.8</span>
-                            <span class="badge year-badge">2024</span>
-                        </div>
-                        <div class="mt-2">
-                            <a href="#" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                @endif
-                @endforelse
             </div>
+            @empty
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Hiện tại chưa có voucher khuyến mãi</p>
+            </div>
+            @endforelse
         </div>
+    </section>
 
-        <!-- Phim sắp chiếu -->
-        <div class="movie-row">
-            <div class="row-title">
-                <h3>Phim sắp chiếu</h3>
-                <a href="#">Xem tất cả ></a>
-            </div>
-            <div class="movies-scroll">
-                @forelse($comingSoonMovies as $movie)
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="movie-info">
-                        <h4>{{ $movie->title }}</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb {{ $movie->rating }}</span>
-                            <span class="badge year-badge">{{ $movie->release_date->year }}</span>
-                        </div>
-                        <div class="mt-2">
-                            <span class="badge bg-info">Sắp chiếu</span>
-                        </div>
-                    </div>
-                </div>
-                @empty
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="movie-info">
-                        <h4>Spider-Man: Across the Spider-Verse</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb 8.7</span>
-                            <span class="badge year-badge">2024</span>
-                        </div>
-                        <div class="mt-2">
-                            <span class="badge bg-info">Sắp chiếu</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="movie-info">
-                        <h4>Fast X</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb 7.2</span>
-                            <span class="badge year-badge">2024</span>
-                        </div>
-                        <div class="mt-2">
-                            <span class="badge bg-info">Sắp chiếu</span>
-                        </div>
-                    </div>
-                </div>
-                @endforelse
-            </div>
+    <!-- Phim sắp chiếu -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Phim sắp chiếu</h2>
+            <a href="{{ route('movies.index') }}?status=COMING_SOON" class="text-decoration-none">
+                Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+            </a>
         </div>
-
-        <!-- Phim nổi bật -->
-        <div class="movie-row">
-            <div class="row-title">
-                <h3>Phim nổi bật</h3>
-                <a href="#">Xem tất cả ></a>
-            </div>
-            <div class="movies-scroll">
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
+        <div class="row g-4">
+            @forelse($comingSoonMovies as $movie)
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 250px;">
+                        <i class="fas fa-film text-light" style="font-size: 3rem;"></i>
                     </div>
-                    <div class="movie-info">
-                        <h4>Dune: Part Two</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb 9.1</span>
-                            <span class="badge year-badge">2024</span>
+                    <div class="card-body">
+                        <h6 class="card-title mb-2">{{ Str::limit($movie->title, 30) }}</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">{{ $movie->genre }}</small>
+                            <span class="badge bg-info">{{ $movie->release_date->format('d/m') }}</span>
                         </div>
-                        <div class="mt-2">
-                            <a href="#" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="movie-info">
-                        <h4>Oppenheimer</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb 8.9</span>
-                            <span class="badge year-badge">2024</span>
-                        </div>
-                        <div class="mt-2">
-                            <a href="#" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="movie-info">
-                        <h4>Barbie</h4>
-                        <div class="movie-badges">
-                            <span class="badge imdb-badge">IMDb 8.3</span>
-                            <span class="badge year-badge">2024</span>
-                        </div>
-                        <div class="mt-2">
-                            <a href="#" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                            </a>
-                        </div>
+                        <span class="badge bg-info w-100">Sắp chiếu</span>
                     </div>
                 </div>
             </div>
+            @empty
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-film fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Chưa có phim sắp chiếu</p>
+            </div>
+            @endforelse
         </div>
-    </div>
-</section>
+    </section>
+</div>
 @endsection

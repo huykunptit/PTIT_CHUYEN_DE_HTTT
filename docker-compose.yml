@@ -41,18 +41,19 @@ services:
     container_name: cinema_mysql
     environment:
       MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: cinema
-      MYSQL_USER: cinema
+      MYSQL_DATABASE: cinemat
+      MYSQL_USER: cinemat
       MYSQL_PASSWORD: secret
     ports:
       - "3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-u", "root", "-psecret"]
-      interval: 30s
-      retries: 3
-      start_period: 10s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -72,8 +73,8 @@ services:
       APP_KEY: base64:your-app-key-here
       APP_URL: http://localhost:8089
       DB_HOST: mysql
-      DB_DATABASE: cinema
-      DB_USERNAME: cinema
+      DB_DATABASE: cinemat
+      DB_USERNAME: cinemat
       DB_PASSWORD: secret
       QUEUE_CONNECTION: redis
       REDIS_HOST: redis
@@ -95,8 +96,8 @@ services:
       APP_KEY: base64:your-app-key-here
       APP_URL: http://localhost:8089
       DB_HOST: mysql
-      DB_DATABASE: cinema
-      DB_USERNAME: cinema
+      DB_DATABASE: cinemat
+      DB_USERNAME: cinemat
       DB_PASSWORD: secret
       REDIS_HOST: redis
     volumes:
@@ -111,10 +112,13 @@ services:
       PMA_HOST: mysql  
       PMA_USER: root    
       PMA_PASSWORD: secret 
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 300M
     ports:
       - "8081:80"   
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
 volumes:
   mysql_data:

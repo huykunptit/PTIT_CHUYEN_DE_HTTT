@@ -13,10 +13,12 @@ class Ticket extends Model
         'ticket_code',
         'price',
         'status',
+        'checked_in_at',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'checked_in_at' => 'datetime',
     ];
 
     public function booking(): BelongsTo

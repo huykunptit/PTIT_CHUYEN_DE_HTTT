@@ -130,37 +130,48 @@
                             </div>
                         </div>
                         
-                        <!-- Customer Info -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="customer_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('customer_name') is-invalid @enderror" 
-                                           id="customer_name" name="customer_name" value="{{ old('customer_name', auth()->user()->name ?? '') }}" required>
-                                    @error('customer_name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                        @php 
+                            $user = auth()->user(); 
+                            $profileEditUrl = Route::has('profile.edit') ? route('profile.edit') : '#';
+                        @endphp
+                        <div class="card bg-light border-0 shadow-sm mb-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h5 class="mb-1">Thông tin liên hệ</h5>
+                                        <p class="text-muted mb-0">Thông tin từ tài khoản của bạn</p>
+                                    </div>
+                                    <a href="{{ $profileEditUrl }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-user-edit me-2"></i>Cập nhật
+                                    </a>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="customer_phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                                    <input type="tel" class="form-control @error('customer_phone') is-invalid @enderror" 
-                                           id="customer_phone" name="customer_phone" value="{{ old('customer_phone', auth()->user()->phone ?? '') }}" required>
-                                    @error('customer_phone')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="info-chip">
+                                            <small class="text-muted d-block mb-1">Họ và tên</small>
+                                            <strong>{{ $user->name }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="info-chip">
+                                            <small class="text-muted d-block mb-1">Email</small>
+                                            <strong>{{ $user->email }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="info-chip">
+                                            <small class="text-muted d-block mb-1">Số điện thoại</small>
+                                            <strong>{{ $user->phone ?? 'Chưa cập nhật' }}</strong>
+                                        </div>
+                                    </div>
                                 </div>
+                                @if(!$user->phone)
+                                    <div class="alert alert-warning d-flex align-items-center mt-3 mb-0" role="alert">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        <span>Vui lòng cập nhật số điện thoại để nhận thông tin vé dễ dàng hơn.</span>
+                                    </div>
+                                @endif
                             </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="customer_email" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control @error('customer_email') is-invalid @enderror" 
-                                   id="customer_email" name="customer_email" value="{{ old('customer_email', auth()->user()->email ?? '') }}" required>
-                            @error('customer_email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
                         
                         <div class="d-flex justify-content-end">
@@ -232,6 +243,32 @@
 .seat-occupied:hover {
     background-color: #dc3545;
 }
+
+.info-chip {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+.seat-summary-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.seat-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.seat-summary-type {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-transform: capitalize;
+}
 </style>
 
 <script>
@@ -245,21 +282,46 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalPrice = selectedSeats.reduce((sum, cb) => sum + parseFloat(cb.dataset.price), 0);
         
         if (selectedSeats.length === 0) {
-            summary.innerHTML = '<p class="text-muted">Chọn ghế để xem tóm tắt</p>';
+            summary.innerHTML = '<p class="text-muted text-center">Chọn ghế để xem tóm tắt</p>';
             bookButton.disabled = true;
         } else {
+            const seatCards = selectedSeats.map(cb => {
+                const seatLabel = cb.nextElementSibling.textContent.trim();
+                const price = parseFloat(cb.dataset.price);
+                const seatType = cb.dataset.type?.toLowerCase() ?? 'standard';
+
+                const typeLabels = {
+                    'vip': 'Ghế VIP',
+                    'couple': 'Ghế đôi',
+                    'standard': 'Ghế thường'
+                };
+
+                return `
+                    <div class="seat-summary-card mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-bold fs-5">Ghế ${seatLabel}</div>
+                                <div class="seat-summary-type">${typeLabels[seatType] || 'Ghế thường'}</div>
+                            </div>
+                            <div class="text-primary fw-bold fs-5">${price.toLocaleString('vi-VN')}₫</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
             summary.innerHTML = `
                 <div class="mb-3">
-                    <h6>Số ghế đã chọn: ${selectedSeats.length}</h6>
-                    <ul class="list-unstyled">
-                        ${selectedSeats.map(cb => {
-                            const seatLabel = cb.nextElementSibling;
-                            return `<li>Ghế ${seatLabel.textContent} - ${parseFloat(cb.dataset.price).toLocaleString('vi-VN')}₫</li>`;
-                        }).join('')}
-                    </ul>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0 text-muted">Ghế đã chọn</h6>
+                        <span class="badge bg-primary">${selectedSeats.length} ghế</span>
+                    </div>
+                    ${seatCards}
                 </div>
                 <div class="border-top pt-3">
-                    <h5 class="text-primary">Tổng cộng: ${totalPrice.toLocaleString('vi-VN')}₫</h5>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Tổng cộng</span>
+                        <h4 class="text-primary mb-0">${totalPrice.toLocaleString('vi-VN')}₫</h4>
+                    </div>
                 </div>
             `;
             bookButton.disabled = false;

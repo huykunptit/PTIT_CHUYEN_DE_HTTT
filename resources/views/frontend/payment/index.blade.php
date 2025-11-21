@@ -81,88 +81,136 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('payment.vnpay', $booking) }}" id="paymentForm">
-                        @csrf
-                        
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" 
-                                           id="vnpay_qr" value="vnpay_qr" checked>
-                                    <label class="form-check-label" for="vnpay_qr">
-                                        <i class="fas fa-qrcode text-primary me-2"></i>
-                                        <strong>VNPAY QR</strong>
-                                        <br>
-                                        <small class="text-muted">Quét mã QR để thanh toán</small>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" 
-                                           id="vnpay_atm" value="vnpay_atm">
-                                    <label class="form-check-label" for="vnpay_atm">
-                                        <i class="fas fa-credit-card text-success me-2"></i>
-                                        <strong>Thẻ ATM</strong>
-                                        <br>
-                                        <small class="text-muted">Thanh toán qua thẻ ATM</small>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" 
-                                           id="vnpay_card" value="vnpay_card">
-                                    <label class="form-check-label" for="vnpay_card">
-                                        <i class="fas fa-credit-card text-warning me-2"></i>
-                                        <strong>Thẻ quốc tế</strong>
-                                        <br>
-                                        <small class="text-muted">Visa, MasterCard</small>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Total Amount -->
-                        <div class="border-top pt-4">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>Tổng tiền vé:</h6>
-                                    <h6>Phí dịch vụ:</h6>
-                                    <h6>Giảm giá:</h6>
-                                    <hr>
-                                    <h5 class="text-primary">Tổng cộng:</h5>
-                                </div>
-                                <div class="col-md-6 text-end">
-                                    <h6>{{ number_format($booking->total_amount, 0, ',', '.') }}₫</h6>
-                                    <h6>0₫</h6>
-                                    <h6>-{{ number_format($booking->discount_amount, 0, ',', '.') }}₫</h6>
-                                    <hr>
-                                    <h5 class="text-primary">{{ number_format($booking->final_amount, 0, ',', '.') }}₫</h5>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Countdown Timer -->
-                        @if($booking->status == 'PENDING' && $booking->expires_at)
-                        <div class="alert alert-warning mt-4">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-clock me-2"></i>
-                                <span>Thời gian giữ vé còn lại: </span>
-                                <span id="countdown" class="fw-bold ms-2"></span>
-                            </div>
-                        </div>
-                        @endif
-                        
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ route('home') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Quay lại
-                            </a>
-                            <button type="submit" class="btn btn-primary btn-lg" id="payButton">
-                                <i class="fas fa-credit-card me-2"></i>Thanh toán ngay
+                    <ul class="nav nav-tabs mb-4" id="paymentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="vnpay-tab" data-bs-toggle="tab" data-bs-target="#vnpay-panel" type="button" role="tab">
+                                <i class="fas fa-qrcode me-2"></i>VNPay
                             </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="sepay-tab" data-bs-toggle="tab" data-bs-target="#sepay-panel" type="button" role="tab">
+                                <i class="fas fa-university me-2"></i>Chuyển khoản ngân hàng
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="paymentTabsContent">
+                        <!-- VNPay Tab -->
+                        <div class="tab-pane fade show active" id="vnpay-panel" role="tabpanel">
+                            <form method="POST" action="{{ route('payment.vnpay', $booking) }}" id="vnpayForm">
+                                @csrf
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" 
+                                                   id="vnpay_qr" value="vnpay_qr" checked>
+                                            <label class="form-check-label" for="vnpay_qr">
+                                                <i class="fas fa-qrcode text-primary me-2"></i>
+                                                <strong>VNPAY QR</strong>
+                                                <br>
+                                                <small class="text-muted">Quét mã QR để thanh toán</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" 
+                                                   id="vnpay_atm" value="vnpay_atm">
+                                            <label class="form-check-label" for="vnpay_atm">
+                                                <i class="fas fa-credit-card text-success me-2"></i>
+                                                <strong>Thẻ ATM</strong>
+                                                <br>
+                                                <small class="text-muted">Thanh toán qua thẻ ATM</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" 
+                                                   id="vnpay_card" value="vnpay_card">
+                                            <label class="form-check-label" for="vnpay_card">
+                                                <i class="fas fa-credit-card text-warning me-2"></i>
+                                                <strong>Thẻ quốc tế</strong>
+                                                <br>
+                                                <small class="text-muted">Visa, MasterCard</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-credit-card me-2"></i>Thanh toán VNPay
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    </form>
+
+                        <!-- SePay Tab -->
+                        <div class="tab-pane fade" id="sepay-panel" role="tabpanel">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle me-2"></i>Hướng dẫn thanh toán</h6>
+                                <p class="mb-2">Vui lòng chuyển khoản đúng số tiền với nội dung chuyển khoản:</p>
+                                <div class="bg-light p-3 rounded mb-3">
+                                    <code class="text-primary fs-5">SE{{ $booking->booking_code }}</code>
+                                </div>
+                                <p class="mb-0"><small>Hệ thống sẽ tự động xác nhận thanh toán sau khi nhận được chuyển khoản.</small></p>
+                            </div>
+
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="fas fa-university me-2"></i>Thông tin tài khoản ngân hàng</h6>
+                                    <p class="mb-1"><strong>Số tiền:</strong> <span class="text-primary fs-5">{{ number_format($booking->final_amount, 0, ',', '.') }}₫</span></p>
+                                    <p class="mb-1"><strong>Nội dung chuyển khoản:</strong> <code>SE{{ $booking->booking_code }}</code></p>
+                                    <p class="mb-0"><small class="text-muted">Vui lòng chuyển khoản đúng số tiền và nội dung để hệ thống tự động xác nhận.</small></p>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Lưu ý:</strong> Sau khi chuyển khoản, hệ thống sẽ tự động cập nhật trạng thái đặt vé trong vòng vài phút. 
+                                Vui lòng không chuyển khoản lại nếu đã chuyển khoản thành công.
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <!-- Total Amount -->
+                    <div class="border-top pt-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Tổng tiền vé:</h6>
+                                <h6>Phí dịch vụ:</h6>
+                                <h6>Giảm giá:</h6>
+                                <hr>
+                                <h5 class="text-primary">Tổng cộng:</h5>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h6>{{ number_format($booking->total_amount, 0, ',', '.') }}₫</h6>
+                                <h6>0₫</h6>
+                                <h6>-{{ number_format($booking->discount_amount, 0, ',', '.') }}₫</h6>
+                                <hr>
+                                <h5 class="text-primary">{{ number_format($booking->final_amount, 0, ',', '.') }}₫</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Countdown Timer -->
+                    @if($booking->status == 'PENDING' && $booking->expires_at)
+                    <div class="alert alert-warning mt-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-clock me-2"></i>
+                            <span>Thời gian giữ vé còn lại: </span>
+                            <span id="countdown" class="fw-bold ms-2"></span>
+                        </div>
+                    </div>
+                    @endif
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ route('home') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -24,6 +24,9 @@ class User extends Authenticatable
         'phone',
         'date_of_birth',
         'is_member',
+        'role',
+        'google_id',
+        'google_avatar',
     ];
 
     /**
@@ -45,6 +48,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'date_of_birth' => 'date',
             'is_member' => 'boolean',

@@ -7,9 +7,9 @@
     <!-- Movie Header -->
     <div class="row mb-5">
         <div class="col-md-4">
-            <div class="bg-dark d-flex align-items-center justify-content-center" 
-                 style="height: 400px; border-radius: 8px;">
-                <i class="fas fa-film text-light" style="font-size: 4rem;"></i>
+            <div class="d-flex align-items-center justify-content-center shadow-sm"
+                 style="height: 400px; border-radius: 16px; background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%);">
+                <i class="fas fa-film text-primary" style="font-size: 4rem;"></i>
             </div>
         </div>
         <div class="col-md-8">
@@ -81,50 +81,119 @@
     <!-- Showtimes -->
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0">
                     <h5 class="mb-0">
-                        <i class="fas fa-clock me-2"></i>Lịch chiếu
+                        <i class="fas fa-clock me-2 text-primary"></i>Lịch chiếu
                     </h5>
                 </div>
                 <div class="card-body">
-                    @if($showtimes->count() > 0)
-                        @foreach($showtimes as $date => $showtimeGroup)
-                        <div class="mb-4">
-                            <h6 class="text-primary mb-3">
-                                <i class="fas fa-calendar me-2"></i>{{ \Carbon\Carbon::parse($date)->format('d/m/Y - l') }}
-                            </h6>
-                            <div class="row">
-                                @foreach($showtimeGroup as $showtime)
-                                <div class="col-md-3 mb-3">
-                                    <div class="card border-primary">
-                                        <div class="card-body text-center">
-                                            <h6 class="card-title">{{ $showtime->room->cinema->name }}</h6>
-                                            <p class="text-muted mb-2">{{ $showtime->room->name }}</p>
-                                            <p class="text-primary fw-bold mb-3">
-                                                {{ \Carbon\Carbon::parse($showtime->start_time)->format('H:i') }} - 
-                                                {{ \Carbon\Carbon::parse($showtime->end_time)->format('H:i') }}
-                                            </p>
-                                            @if($showtime->status == 'ACTIVE')
-                                                <a href="{{ route('booking.create', $showtime) }}" 
-                                                   class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-ticket-alt me-1"></i>Đặt vé
-                                                </a>
-                                            @else
-                                                <span class="badge bg-secondary">Đã hủy</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                                @endforeach
+                    <!-- Filter by Cinema and Date (Chọn rạp/ngày) -->
+                    <form method="GET" action="{{ route('movies.show', $movie) }}" class="mb-4">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label for="city" class="form-label text-muted">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Khu vực
+                                </label>
+                                <select class="form-select" id="city" name="city">
+                                    <option value="">Tất cả khu vực</option>
+                                    <option value="HCM" {{ $selectedCity === 'HCM' ? 'selected' : '' }}>TP. Hồ Chí Minh</option>
+                                    <option value="HN" {{ $selectedCity === 'HN' ? 'selected' : '' }}>Hà Nội</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="cinema_id" class="form-label text-muted">
+                                    <i class="fas fa-building me-2"></i>Chọn rạp
+                                </label>
+                                <select class="form-select" id="cinema_id" name="cinema_id">
+                                    <option value="">Tất cả rạp</option>
+                                    @foreach($cinemas as $cinema)
+                                        <option value="{{ $cinema->id }}" {{ $selectedCinemaId == $cinema->id ? 'selected' : '' }}>
+                                            {{ $cinema->name }} ({{ $cinema->city === 'HN' ? 'Hà Nội' : 'TP.HCM' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="date" class="form-label text-muted">
+                                    <i class="fas fa-calendar me-2"></i>Chọn ngày
+                                </label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="date" 
+                                       name="date" 
+                                       value="{{ $selectedDate ?? '' }}"
+                                       min="{{ now()->toDateString() }}">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100 me-2">
+                                    <i class="fas fa-search me-2"></i>Tìm kiếm
+                                </button>
+                                <a href="{{ route('movies.show', $movie) }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-redo"></i>
+                                </a>
                             </div>
                         </div>
+                    </form>
+
+                    @if($showtimes->count() > 0)
+                        @foreach($showtimes as $date => $showtimeGroup)
+                            <div class="mb-4">
+                                <h6 class="text-primary mb-3 fw-semibold">
+                                    <i class="fas fa-calendar me-2"></i>{{ \Carbon\Carbon::parse($date)->format('d/m/Y') }} - 
+                                    {{ \Carbon\Carbon::parse($date)->locale('vi')->dayName }}
+                                </h6>
+                                
+                                    @foreach($showtimeGroup->groupBy(function($st) { return $st->room->cinema_id; }) as $cinemaId => $cinemaShowtimes)
+                                    @php $cinemaInfo = $cinemaShowtimes->first()->room->cinema; @endphp
+                                    <div class="mb-3">
+                                        <h6 class="text-muted mb-2 fw-semibold d-flex align-items-center justify-content-between">
+                                            <span>
+                                                <i class="fas fa-building me-2 text-secondary"></i>
+                                                {{ $cinemaInfo->name }}
+                                            </span>
+                                            <span class="badge {{ $cinemaInfo->city === 'HN' ? 'bg-info text-dark' : 'bg-primary' }}">
+                                                {{ $cinemaInfo->city === 'HN' ? 'Hà Nội' : 'TP. Hồ Chí Minh' }}
+                                            </span>
+                                        </h6>
+                                        <div class="row">
+                                            @foreach($cinemaShowtimes as $showtime)
+                                            <div class="col-md-3 mb-3">
+                                                <div class="card border-0 shadow-sm h-100">
+                                                    <div class="card-body text-center">
+                                                        <p class="text-muted mb-2 small">
+                                                            <i class="fas fa-door-open me-1 text-secondary"></i>{{ $showtime->room->name }}
+                                                        </p>
+                                                        <p class="text-primary fw-bold mb-3 fs-5">
+                                                            <i class="fas fa-clock me-2"></i>
+                                                            {{ \Carbon\Carbon::parse($showtime->start_time)->format('H:i') }} - 
+                                                            {{ \Carbon\Carbon::parse($showtime->end_time)->format('H:i') }}
+                                                        </p>
+                                                        @if($showtime->status == 'ACTIVE')
+                                                            <a href="{{ route('booking.create', $showtime) }}" 
+                                                               class="btn btn-outline-primary btn-sm">
+                                                                <i class="fas fa-ticket-alt me-2"></i>Chọn suất
+                                                            </a>
+                                                        @else
+                                                            <span class="badge bg-light text-secondary border">Đã hủy</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         @endforeach
                     @else
-                    <div class="text-center py-4">
-                        <i class="fas fa-clock text-muted" style="font-size: 3rem;"></i>
+                    <div class="text-center py-5">
+                        <i class="fas fa-clock text-muted" style="font-size: 4rem;"></i>
                         <h5 class="text-muted mt-3">Chưa có lịch chiếu</h5>
                         <p class="text-muted">Hãy quay lại sau để xem lịch chiếu mới nhất!</p>
+                        <a href="{{ route('movies.index') }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-arrow-left me-2"></i>Về danh sách phim
+                        </a>
                     </div>
                     @endif
                 </div>
