@@ -138,6 +138,11 @@
                         <p class="mb-0"><strong>{{ $booking->booking_code }}</strong></p>
                     </div>
                     <div class="d-flex gap-2 justify-content-end">
+                        @if($booking->status === 'CONFIRMED')
+                        <a href="{{ route('tickets.booking.print', $booking) }}" class="btn btn-success btn-sm" target="_blank">
+                            <i class="fas fa-print me-1"></i>In vé
+                        </a>
+                        @endif
                         <a href="{{ route('tickets.show', $booking) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-eye me-1"></i>Xem vé
                         </a>

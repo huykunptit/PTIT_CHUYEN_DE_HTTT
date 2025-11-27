@@ -14,9 +14,12 @@ services:
       DB_USERNAME: cinemat
       DB_PASSWORD: secret
       REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: null
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       SESSION_DRIVER: redis
+      BROADCAST_DRIVER: pusher
     volumes:
       - ./:/var/www/html
     depends_on:
@@ -24,6 +27,7 @@ services:
       - redis
     ports:
       - "9000:9000"
+    restart: unless-stopped
 
   nginx:
     image: nginx:1.27-alpine
@@ -58,52 +62,70 @@ services:
   redis:
     image: redis:7-alpine
     container_name: cinema_redis
+    command: redis-server --appendonly yes
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
 
   queue:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: cinema_queue
-    command: php artisan queue:work --sleep=3 --tries=3
+    command: php artisan queue:work redis --sleep=3 --tries=3 --timeout=90
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
-      APP_KEY: base64:your-app-key-here
+      APP_KEY: base64:mDGq2A9EQ0cSSCCbVAJakfdayHQ2odYjeb3wW+wCc/Y=
       APP_URL: http://localhost:8089
       DB_HOST: mysql
       DB_DATABASE: cinemat
       DB_USERNAME: cinemat
       DB_PASSWORD: secret
       QUEUE_CONNECTION: redis
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
       REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: null
     volumes:
       - ./:/var/www/html
     depends_on:
       - app
       - redis
+      - mysql
+    restart: unless-stopped
 
   scheduler:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: cinema_scheduler
-    command: sh -c "while :; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    command: sh -c "while :; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
-      APP_KEY: base64:your-app-key-here
+      APP_KEY: base64:mDGq2A9EQ0cSSCCbVAJakfdayHQ2odYjeb3wW+wCc/Y=
       APP_URL: http://localhost:8089
       DB_HOST: mysql
       DB_DATABASE: cinemat
       DB_USERNAME: cinemat
       DB_PASSWORD: secret
+      QUEUE_CONNECTION: redis
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
       REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: null
     volumes:
       - ./:/var/www/html
     depends_on:
       - app
+      - redis
+      - mysql
+    restart: unless-stopped
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
@@ -122,3 +144,4 @@ services:
 
 volumes:
   mysql_data:
+  redis_data:

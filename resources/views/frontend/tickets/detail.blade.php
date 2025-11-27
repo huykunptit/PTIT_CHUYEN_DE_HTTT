@@ -96,6 +96,9 @@
                     </div>
 
                     <div class="d-grid gap-2">
+                        <a href="{{ route('tickets.print', $ticket->id) }}" class="btn btn-success" target="_blank">
+                            <i class="fas fa-print me-2"></i>In vé PDF
+                        </a>
                         <a href="{{ route('checkin.show') }}" class="btn btn-primary">
                             <i class="fas fa-qrcode me-2"></i>Check-in vé
                         </a>

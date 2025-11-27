@@ -96,9 +96,12 @@
                         </small>
                     </div>
 
-                    <div class="d-grid">
+                    <div class="d-grid gap-2">
                         <a href="{{ route('tickets.detail', $ticket->id) }}" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-eye me-1"></i>Xem chi tiết
+                        </a>
+                        <a href="{{ route('tickets.print', $ticket->id) }}" class="btn btn-outline-success btn-sm" target="_blank">
+                            <i class="fas fa-print me-1"></i>In vé PDF
                         </a>
                     </div>
                 </div>
@@ -109,6 +112,9 @@
 
     <div class="row mt-4">
         <div class="col-12 text-center">
+            <a href="{{ route('tickets.booking.print', $booking->id) }}" class="btn btn-success me-2" target="_blank">
+                <i class="fas fa-print me-2"></i>In tất cả vé PDF
+            </a>
             <a href="{{ route('checkin.show') }}" class="btn btn-primary me-2">
                 <i class="fas fa-qrcode me-2"></i>Check-in vé
             </a>

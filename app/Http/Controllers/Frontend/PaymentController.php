@@ -10,8 +10,12 @@ use App\Events\PaymentSuccess;
 use App\Events\BookingConfirmed;
 use App\Notifications\PaymentSuccessNotification;
 use App\Notifications\BookingConfirmedNotification;
+use App\Mail\TicketPdfMail;
+use App\Models\Promotion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -35,15 +39,21 @@ class PaymentController extends Controller
     {
         $request->validate([
             'payment_method' => 'required|in:vnpay_qr,vnpay_atm,vnpay_card',
+            'promotion_id' => 'nullable|exists:promotions,id',
         ]);
         
         if ($booking->status !== 'PENDING') {
             return redirect()->route('home')->with('error', 'Booking không hợp lệ');
         }
 
+        // Apply promotion nếu có
+        if ($request->promotion_id) {
+            $this->applyPromotion($booking, $request->promotion_id);
+        }
+
         // Tạo URL thanh toán VNPay
         $vnp_TxnRef = $booking->booking_code; // Sử dụng booking_code làm mã giao dịch
-        $vnp_Amount = $booking->final_amount;
+        $vnp_Amount = $booking->fresh()->final_amount; // Reload để lấy final_amount mới nhất
         $vnp_OrderInfo = "Thanh toan don hang: " . $booking->booking_code;
         $vnp_BankCode = $this->vnpayService->getBankCode($request->payment_method);
         $vnp_Locale = 'vn';
@@ -110,6 +120,7 @@ class PaymentController extends Controller
                 'status' => 'CONFIRMED',
                 'payment_method' => $paymentMethods[$method] ?? 'VNPAY',
                 'payment_status' => 'SUCCESS',
+                'expires_at' => null, // Clear expiration date after successful payment
                 'payment_details' => [
                     'transaction_id' => 'DEMO' . strtoupper(\Illuminate\Support\Str::random(12)),
                     'method' => $method,
@@ -121,6 +132,27 @@ class PaymentController extends Controller
             $booking->tickets()->update([
                 'status' => 'SOLD',
             ]);
+            
+            // Reload booking với relationships
+            $booking->load(['user', 'showtime.movie', 'showtime.room.cinema', 'tickets', 'promotions']);
+            
+            // Save promotion usage
+            $this->savePromotionUsage($booking);
+            
+            // Gửi notification và email PDF
+            if ($booking->user) {
+                $booking->user->notify(new PaymentSuccessNotification($booking));
+                $booking->user->notify(new BookingConfirmedNotification($booking));
+                
+                // Gửi email PDF cho mỗi ticket
+                foreach ($booking->tickets as $ticket) {
+                    Mail::to($booking->user->email)->send(new TicketPdfMail($ticket));
+                }
+            }
+            
+            // Broadcast events
+            event(new PaymentSuccess($booking));
+            event(new BookingConfirmed($booking));
             
             // Redirect đến trang hiển thị vé
             return redirect()->route('tickets.show', ['booking' => $booking->id])
@@ -173,6 +205,7 @@ class PaymentController extends Controller
                 $booking->update([
                     'status' => 'CONFIRMED',
                     'payment_status' => 'SUCCESS',
+                    'expires_at' => null, // Clear expiration date after successful payment
                     'payment_details' => $returnData['all'],
                 ]);
 
@@ -184,10 +217,18 @@ class PaymentController extends Controller
                 // Reload booking với relationships
                 $booking->load(['user', 'showtime.movie', 'showtime.room.cinema']);
 
+                // Save promotion usage
+                $this->savePromotionUsage($booking);
+
                 // Gửi notification và broadcast event
                 if ($booking->user) {
                     $booking->user->notify(new PaymentSuccessNotification($booking));
                     $booking->user->notify(new BookingConfirmedNotification($booking));
+                    
+                    // Gửi email PDF cho mỗi ticket
+                    foreach ($booking->tickets as $ticket) {
+                        Mail::to($booking->user->email)->send(new TicketPdfMail($ticket));
+                    }
                 }
                 
                 // Broadcast events
@@ -306,6 +347,7 @@ class PaymentController extends Controller
                     $booking->update([
                         'status' => 'CONFIRMED',
                         'payment_status' => 'SUCCESS',
+                        'expires_at' => null, // Clear expiration date after successful payment
                 'payment_details' => $inputData,
                     ]);
                     
@@ -315,12 +357,20 @@ class PaymentController extends Controller
                     ]);
                     
             // Reload booking với relationships
-            $booking->load(['user', 'showtime.movie', 'showtime.room.cinema']);
+            $booking->load(['user', 'showtime.movie', 'showtime.room.cinema', 'promotions']);
+
+            // Save promotion usage
+            $this->savePromotionUsage($booking);
 
             // Gửi notification và broadcast event
             if ($booking->user) {
                 $booking->user->notify(new PaymentSuccessNotification($booking));
                 $booking->user->notify(new BookingConfirmedNotification($booking));
+                
+                // Gửi email PDF cho mỗi ticket
+                foreach ($booking->tickets as $ticket) {
+                    Mail::to($booking->user->email)->send(new TicketPdfMail($ticket));
+                }
             }
             
             // Broadcast events
@@ -353,6 +403,84 @@ class PaymentController extends Controller
                 'RspCode' => '00',
                 'Message' => 'Confirm Success'
             ], 200);
+        }
+    }
+
+    /**
+     * Apply promotion to booking
+     */
+    protected function applyPromotion(Booking $booking, int $promotionId): void
+    {
+        $promotion = Promotion::findOrFail($promotionId);
+        
+        // Validate promotion (similar to PromotionController)
+        if (!$promotion->is_active) {
+            return;
+        }
+
+        $now = now();
+        if ($now->lt($promotion->start_date) || $now->gt($promotion->end_date)) {
+            return;
+        }
+
+        if ($promotion->usage_limit && $promotion->usage_count >= $promotion->usage_limit) {
+            return;
+        }
+
+        if ($promotion->min_amount && $booking->total_amount < $promotion->min_amount) {
+            return;
+        }
+
+        // Check if already applied
+        if ($booking->promotions()->where('promotions.id', $promotionId)->exists()) {
+            return;
+        }
+
+        // Calculate discount
+        $discountAmount = 0;
+        
+        if ($promotion->type === 'PERCENTAGE') {
+            $discountAmount = ($booking->total_amount * $promotion->value) / 100;
+            if ($promotion->max_discount) {
+                $discountAmount = min($discountAmount, $promotion->max_discount);
+            }
+        } elseif ($promotion->type === 'FIXED_AMOUNT') {
+            $discountAmount = min($promotion->value, $booking->total_amount);
+        }
+
+        $finalAmount = max(0, $booking->total_amount - $discountAmount);
+
+        // Update booking
+        $booking->update([
+            'discount_amount' => $discountAmount,
+            'final_amount' => $finalAmount,
+        ]);
+
+        // Attach promotion
+        $booking->promotions()->attach($promotionId, [
+            'user_id' => $booking->user_id,
+            'discount_amount' => $discountAmount,
+        ]);
+
+        // Increment usage count
+        $promotion->increment('usage_count');
+    }
+
+    /**
+     * Save promotion usage after successful payment
+     */
+    protected function savePromotionUsage(Booking $booking): void
+    {
+        // Promotion usage đã được lưu khi apply promotion
+        // Chỉ cần đảm bảo promotion_usage được tạo với booking_id
+        foreach ($booking->promotions as $promotion) {
+            DB::table('promotion_usages')
+                ->where('booking_id', $booking->id)
+                ->where('promotion_id', $promotion->id)
+                ->update([
+                    'booking_id' => $booking->id,
+                    'updated_at' => now(),
+                ]);
         }
     }
 }

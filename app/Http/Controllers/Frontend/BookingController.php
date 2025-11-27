@@ -7,12 +7,20 @@ use App\Models\Showtime;
 use App\Models\Seat;
 use App\Models\Booking;
 use App\Models\Ticket;
+use App\Services\SeatHoldService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 
 class BookingController extends Controller
 {
+    protected $seatHoldService;
+
+    public function __construct(SeatHoldService $seatHoldService)
+    {
+        $this->seatHoldService = $seatHoldService;
+    }
+
     public function create(Showtime $showtime)
     {
         // Load relationships efficiently
@@ -32,8 +40,11 @@ class BookingController extends Controller
             }])
             ->get();
         });
+
+        // Get held seats from Redis
+        $heldSeats = $this->seatHoldService->getHeldSeats($showtime->id);
             
-        return view('frontend.booking.create', compact('showtime', 'seats'));
+        return view('frontend.booking.create', compact('showtime', 'seats', 'heldSeats'));
     }
     
     public function store(Request $request)
@@ -47,6 +58,17 @@ class BookingController extends Controller
         $showtime = Showtime::findOrFail($request->showtime_id);
         $seats = Seat::whereIn('id', $request->seat_ids)->get();
         
+        // Validate seats are not already held by someone else
+        foreach ($request->seat_ids as $seatId) {
+            if ($this->seatHoldService->isSeatHeld($showtime->id, $seatId)) {
+                $holdInfo = $this->seatHoldService->getSeatHold($showtime->id, $seatId);
+                // Check if held by current user
+                if ($holdInfo && $holdInfo['user_id'] != auth()->id()) {
+                    return back()->withErrors(['seat_ids' => 'Một số ghế đã được người khác giữ chỗ. Vui lòng chọn ghế khác.'])->withInput();
+                }
+            }
+        }
+        
         // Calculate total amount
         $totalAmount = $seats->sum('price');
         
@@ -58,7 +80,7 @@ class BookingController extends Controller
             'total_amount' => $totalAmount,
             'final_amount' => $totalAmount,
             'status' => 'PENDING',
-            'expires_at' => now()->addMinutes(30), // Tăng lên 30 phút để dễ test
+            'expires_at' => now()->addMinutes(5), // 5 phút theo yêu cầu
         ]);
         
         // Create tickets
@@ -71,6 +93,9 @@ class BookingController extends Controller
                 'status' => 'BOOKED',
             ]);
         }
+
+        // Release held seats (they are now booked)
+        $this->seatHoldService->releaseSeats($showtime->id, $request->seat_ids);
         
         return redirect()->route('payment.index', $booking);
     }

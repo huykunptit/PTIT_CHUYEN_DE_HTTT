@@ -57,6 +57,8 @@ Route::get('/check-in/ticket/{ticketCode}', [CheckInController::class, 'ticketIn
 Route::middleware('auth')->group(function () {
     Route::get('/tickets/booking/{booking}', [TicketController::class, 'show'])->name('tickets.show');
     Route::get('/tickets/{ticket}', [TicketController::class, 'detail'])->name('tickets.detail');
+    Route::get('/tickets/{ticket}/print', [TicketController::class, 'printPdf'])->name('tickets.print');
+    Route::get('/tickets/booking/{booking}/print', [TicketController::class, 'printBookingPdf'])->name('tickets.booking.print');
 
     Route::get('/my-tickets', [\App\Http\Controllers\Frontend\MyTicketsController::class, 'index'])->name('my-tickets.index');
     Route::post('/my-tickets/{booking}/cancel', [\App\Http\Controllers\Frontend\MyTicketsController::class, 'cancel'])->name('my-tickets.cancel');
@@ -105,6 +107,19 @@ Route::prefix('api/notifications')->middleware('auth')->group(function () {
     Route::get('/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
     Route::post('/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
     Route::post('/mark-all-read', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+});
+
+// Seat Hold API Routes
+Route::prefix('api/seats')->middleware('auth')->group(function () {
+    Route::post('/hold', [\App\Http\Controllers\Api\SeatHoldController::class, 'hold']);
+    Route::post('/release', [\App\Http\Controllers\Api\SeatHoldController::class, 'release']);
+    Route::get('/showtime/{showtimeId}/held', [\App\Http\Controllers\Api\SeatHoldController::class, 'getHeldSeats']);
+    Route::post('/check-status', [\App\Http\Controllers\Api\SeatHoldController::class, 'checkStatus']);
+});
+
+// Promotion API Routes
+Route::prefix('api/promotions')->middleware('auth')->group(function () {
+    Route::post('/validate', [\App\Http\Controllers\Api\PromotionController::class, 'validate']);
 });
 
 // Broadcasting Auth

@@ -92,9 +92,11 @@
                                             <label for="seat_{{ $seat->id }}" 
                                                    class="seat-label 
                                                           @if($seat->tickets->count() > 0) seat-occupied 
+                                                          @elseif(isset($heldSeats[$seat->id])) seat-held
                                                           @elseif($seat->type == 'VIP') seat-vip 
                                                           @elseif($seat->type == 'COUPLE') seat-couple 
-                                                          @else seat-standard @endif">
+                                                          @else seat-standard @endif"
+                                                   data-seat-id="{{ $seat->id }}">
                                                 {{ $seat->number }}
                                             </label>
                                         </div>
@@ -125,6 +127,10 @@
                                     <div class="d-flex align-items-center">
                                         <div class="seat-label seat-occupied me-2"></div>
                                         <span>Đã bán</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="seat-label seat-held me-2"></div>
+                                        <span>Đang giữ chỗ</span>
                                     </div>
                                 </div>
                             </div>
@@ -244,6 +250,25 @@
     background-color: #dc3545;
 }
 
+.seat-held {
+    background-color: #ff9800;
+    color: white;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.seat-held:hover {
+    background-color: #ff9800;
+}
+
+.seat-held::after {
+    content: '⏱';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 10px;
+}
+
 .info-chip {
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -273,12 +298,128 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const showtimeId = {{ $showtime->id }};
     const checkboxes = document.querySelectorAll('.seat-checkbox');
     const bookButton = document.getElementById('bookButton');
     const summary = document.getElementById('bookingSummary');
+    const heldSeats = @json($heldSeats ?? []);
+    const currentUserId = {{ auth()->id() ?? 'null' }};
+    
+    // Track held seats
+    let seatHoldTimeouts = {};
+    
+    // Initialize Pusher for realtime updates
+    @if(config('broadcasting.default') === 'pusher' && config('broadcasting.connections.pusher.key'))
+    try {
+        const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
+            cluster: '{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}',
+            encrypted: true
+        });
+
+        const channel = pusher.subscribe('showtime.' + showtimeId + '.seats');
+        
+        // Listen for seat held event
+        channel.bind('seat.held', function(data) {
+            updateSeatStatus(data.seat_id, 'held', data.user_id);
+        });
+        
+        // Listen for seat released event
+        channel.bind('seat.released', function(data) {
+            updateSeatStatus(data.seat_id, 'released', data.user_id);
+        });
+        
+        // Listen for seat expired event
+        channel.bind('seat.expired', function(data) {
+            updateSeatStatus(data.seat_id, 'expired', data.user_id);
+        });
+    } catch (error) {
+        console.error('Pusher initialization error:', error);
+    }
+    @endif
+    
+    function updateSeatStatus(seatId, action, userId) {
+        const checkbox = document.getElementById('seat_' + seatId);
+        if (!checkbox) return;
+        
+        const label = checkbox.nextElementSibling;
+        const seatItem = label.closest('.seat-item');
+        
+        if (action === 'held') {
+            // Only mark as held if not held by current user
+            if (userId !== currentUserId) {
+                label.classList.remove('seat-standard', 'seat-vip', 'seat-couple');
+                label.classList.add('seat-held');
+                checkbox.disabled = true;
+                label.style.pointerEvents = 'none';
+            }
+        } else if (action === 'released' || action === 'expired') {
+            // Only release if not selected by current user
+            if (!checkbox.checked) {
+                label.classList.remove('seat-held');
+                const seatType = checkbox.dataset.type?.toLowerCase() ?? 'standard';
+                if (seatType === 'vip') {
+                    label.classList.add('seat-vip');
+                } else if (seatType === 'couple') {
+                    label.classList.add('seat-couple');
+                } else {
+                    label.classList.add('seat-standard');
+                }
+                checkbox.disabled = false;
+                label.style.pointerEvents = 'auto';
+            }
+        }
+    }
+    
+    // Hold/release seats when user selects/deselects
+    async function holdSeat(seatId) {
+        try {
+            const response = await fetch('/api/seats/hold', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    showtime_id: showtimeId,
+                    seat_id: seatId
+                })
+            });
+            
+            const data = await response.json();
+            if (!data.success && response.status === 409) {
+                // Seat already held by someone else
+                const checkbox = document.getElementById('seat_' + seatId);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    updateSummary();
+                }
+                alert('Ghế này đã được người khác giữ chỗ. Vui lòng chọn ghế khác.');
+            }
+        } catch (error) {
+            console.error('Error holding seat:', error);
+        }
+    }
+    
+    async function releaseSeat(seatId) {
+        try {
+            await fetch('/api/seats/release', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    showtime_id: showtimeId,
+                    seat_id: seatId
+                })
+            });
+        } catch (error) {
+            console.error('Error releasing seat:', error);
+        }
+    }
     
     function updateSummary() {
-        const selectedSeats = Array.from(checkboxes).filter(cb => cb.checked);
+        const selectedSeats = Array.from(checkboxes).filter(cb => cb.checked && !cb.disabled);
         const totalPrice = selectedSeats.reduce((sum, cb) => sum + parseFloat(cb.dataset.price), 0);
         
         if (selectedSeats.length === 0) {
@@ -329,12 +470,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateSummary);
+        checkbox.addEventListener('change', async function() {
+            const seatId = parseInt(this.value);
+            
+            if (this.checked) {
+                // Hold the seat
+                await holdSeat(seatId);
+                updateSummary();
+            } else {
+                // Release the seat
+                await releaseSeat(seatId);
+                updateSummary();
+            }
+        });
     });
     
-    // Disable occupied seats
-    document.querySelectorAll('.seat-occupied').forEach(seat => {
+    // Disable occupied and held seats
+    document.querySelectorAll('.seat-occupied, .seat-held').forEach(seat => {
+        const checkbox = seat.previousElementSibling;
+        if (checkbox && checkbox.classList.contains('seat-checkbox')) {
+            checkbox.disabled = true;
+        }
         seat.style.pointerEvents = 'none';
+    });
+    
+    // Mark initially held seats
+    Object.keys(heldSeats).forEach(seatId => {
+        const holdInfo = heldSeats[seatId];
+        if (holdInfo.user_id !== currentUserId) {
+            updateSeatStatus(parseInt(seatId), 'held', holdInfo.user_id);
+        }
     });
 });
 </script>

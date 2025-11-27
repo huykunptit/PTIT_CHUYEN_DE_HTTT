@@ -674,27 +674,17 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('movies.index') }}">Phim đang chiếu</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Phim sắp chiếu</a>
-                    </li>
+                
                     <li class="nav-item">
                         <a class="nav-link" href="#">Rạp chiếu</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Khuyến mãi</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Tin tức</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-warning" href="#">Đặt vé ngay</a>
-                    </li>
                 </ul>
                 
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Tải ứng dụng Cinema</a>
-                    </li>
+                   
                     @auth
                         @if(Auth::user()->role === 'admin')
                             <li class="nav-item">

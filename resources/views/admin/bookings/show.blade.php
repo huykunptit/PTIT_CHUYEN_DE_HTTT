@@ -57,7 +57,7 @@
                                     @break
                             @endswitch
                         </p>
-                        @if($booking->expires_at)
+                        @if($booking->status === 'PENDING' && $booking->expires_at)
                             <p><strong>Hết hạn:</strong> {{ $booking->expires_at->format('d/m/Y H:i') }}</p>
                         @endif
                     </div>
@@ -142,16 +142,29 @@
         
         <div class="card mt-3">
             <div class="card-header">
-                <h6 class="mb-0">Vé đã in</h6>
+                <h6 class="mb-0">In vé PDF</h6>
             </div>
             <div class="card-body">
                 <div class="text-center">
                     <i class="fas fa-ticket-alt text-muted" style="font-size: 2rem;"></i>
-                    <p class="text-muted mt-2">Chưa có vé nào được in</p>
-                    <button class="btn btn-primary btn-sm">
-                        <i class="fas fa-print me-1"></i>In vé
-                    </button>
+                    <p class="text-muted mt-2 mb-3">In tất cả vé trong đơn hàng này</p>
+                    <a href="{{ route('tickets.booking.print', $booking->id) }}" class="btn btn-success btn-sm" target="_blank">
+                        <i class="fas fa-print me-1"></i>In tất cả vé PDF
+                    </a>
                 </div>
+                @if($booking->tickets->count() > 0)
+                <hr>
+                <div class="mt-3">
+                    <small class="text-muted d-block mb-2">Hoặc in từng vé:</small>
+                    <div class="d-grid gap-2">
+                        @foreach($booking->tickets as $ticket)
+                        <a href="{{ route('tickets.print', $ticket->id) }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="fas fa-print me-1"></i>In vé {{ $ticket->ticket_code }}
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>

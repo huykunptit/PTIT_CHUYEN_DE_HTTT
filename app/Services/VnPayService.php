@@ -33,7 +33,8 @@ class VnPayService
         $vnp_Amount = $params['vnp_Amount']; // Số tiền
         $vnp_Locale = $params['vnp_Locale'] ?? 'vn'; // Ngôn ngữ
         $vnp_BankCode = $params['vnp_BankCode'] ?? ''; // Mã ngân hàng
-        $vnp_IpAddr = $params['vnp_IpAddr'] ?? $_SERVER['REMOTE_ADDR']; // IP khách hàng
+        // IP khách hàng - ưu tiên từ params, nếu không có thì lấy từ server
+        $vnp_IpAddr = $params['vnp_IpAddr'] ?? ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
         $vnp_OrderInfo = $params['vnp_OrderInfo'] ?? 'Thanh toan don hang'; // Thông tin đơn hàng
 
         $inputData = array(

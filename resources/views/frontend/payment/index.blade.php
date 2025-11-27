@@ -70,6 +70,56 @@
                             @endforeach
                         </div>
                     </div>
+                    
+                    <!-- Promotion Code -->
+                    <div class="mt-4 border-top pt-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-tag me-2 text-primary"></i>Mã giảm giá
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="promotionCode" 
+                                           placeholder="Nhập mã giảm giá">
+                                    <button class="btn btn-primary" type="button" id="applyPromotionBtn">
+                                        <i class="fas fa-check me-2"></i>Áp dụng
+                                    </button>
+                                </div>
+                                <div id="promotionMessage" class="mt-2"></div>
+                            </div>
+                        </div>
+                        <div id="promotionInfo" class="mt-3" style="display: none;">
+                            <div class="alert alert-success">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong id="promotionName"></strong>
+                                        <div class="small">Giảm: <span id="discountAmount"></span></div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="removePromotionBtn">
+                                        <i class="fas fa-times"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Price Summary -->
+                    <div class="mt-4 border-top pt-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tổng tiền:</span>
+                            <strong id="totalAmount">{{ number_format($booking->total_amount, 0, ',', '.') }}₫</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2" id="discountRow" style="display: none;">
+                            <span class="text-success">Giảm giá:</span>
+                            <strong class="text-success" id="discountAmountDisplay">-0₫</strong>
+                        </div>
+                        <div class="d-flex justify-content-between border-top pt-2">
+                            <span class="fs-5"><strong>Thành tiền:</strong></span>
+                            <span class="fs-5 text-primary"><strong id="finalAmount">{{ number_format($booking->final_amount, 0, ',', '.') }}₫</strong></span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -99,6 +149,7 @@
                         <div class="tab-pane fade show active" id="vnpay-panel" role="tabpanel">
                             <form method="POST" action="{{ route('payment.vnpay', $booking) }}" id="vnpayForm">
                                 @csrf
+                                <input type="hidden" name="promotion_id" id="promotionIdInput" value="">
                                 
                                 <div class="row mb-4">
                                     <div class="col-md-4">
@@ -237,6 +288,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
         
         countdownElement.innerHTML = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        
+        // Warning when less than 2 minutes
+        if (distance < 120000) { // 2 minutes
+            countdownElement.parentElement.classList.remove('alert-warning');
+            countdownElement.parentElement.classList.add('alert-danger');
+        } else if (distance < 300000) { // 5 minutes
+            countdownElement.parentElement.classList.remove('alert-info');
+            countdownElement.parentElement.classList.add('alert-warning');
+        }
     }
     
     updateCountdown();
@@ -244,4 +304,87 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
+
+<script>
+// Promotion code handling
+document.addEventListener('DOMContentLoaded', function() {
+    const bookingId = {{ $booking->id }};
+    const applyBtn = document.getElementById('applyPromotionBtn');
+    const removeBtn = document.getElementById('removePromotionBtn');
+    const codeInput = document.getElementById('promotionCode');
+    const messageDiv = document.getElementById('promotionMessage');
+    const promotionInfo = document.getElementById('promotionInfo');
+    const discountRow = document.getElementById('discountRow');
+    
+    let appliedPromotion = null;
+    const promotionIdInput = document.getElementById('promotionIdInput');
+    
+    applyBtn.addEventListener('click', async function() {
+        const code = codeInput.value.trim().toUpperCase();
+        
+        if (!code) {
+            messageDiv.innerHTML = '<div class="text-danger">Vui lòng nhập mã giảm giá</div>';
+            return;
+        }
+        
+        applyBtn.disabled = true;
+        applyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang kiểm tra...';
+        
+        try {
+            const response = await fetch('/api/promotions/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    code: code,
+                    booking_id: bookingId
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                appliedPromotion = data.data;
+                messageDiv.innerHTML = '<div class="text-success">' + data.message + '</div>';
+                promotionInfo.style.display = 'block';
+                document.getElementById('promotionName').textContent = appliedPromotion.promotion.name;
+                document.getElementById('discountAmount').textContent = '-' + appliedPromotion.discount_amount.toLocaleString('vi-VN') + '₫';
+                discountRow.style.display = 'flex';
+                document.getElementById('discountAmountDisplay').textContent = '-' + appliedPromotion.discount_amount.toLocaleString('vi-VN') + '₫';
+                document.getElementById('finalAmount').textContent = appliedPromotion.final_amount.toLocaleString('vi-VN') + '₫';
+                promotionIdInput.value = appliedPromotion.promotion.id;
+                codeInput.disabled = true;
+            } else {
+                messageDiv.innerHTML = '<div class="text-danger">' + data.message + '</div>';
+            }
+        } catch (error) {
+            messageDiv.innerHTML = '<div class="text-danger">Có lỗi xảy ra. Vui lòng thử lại.</div>';
+        } finally {
+            applyBtn.disabled = false;
+            applyBtn.innerHTML = '<i class="fas fa-check me-2"></i>Áp dụng';
+        }
+    });
+    
+    removeBtn.addEventListener('click', function() {
+        appliedPromotion = null;
+        promotionInfo.style.display = 'none';
+        discountRow.style.display = 'none';
+        messageDiv.innerHTML = '';
+        codeInput.value = '';
+        codeInput.disabled = false;
+        promotionIdInput.value = '';
+        document.getElementById('finalAmount').textContent = '{{ number_format($booking->total_amount, 0, ',', '.') }}₫';
+    });
+    
+    // Allow Enter key to apply
+    codeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            applyBtn.click();
+        }
+    });
+});
+</script>
 @endsection
