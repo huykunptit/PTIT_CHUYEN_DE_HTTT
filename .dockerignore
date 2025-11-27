@@ -3,51 +3,84 @@
 .gitignore
 .gitattributes
 
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
+# Documentation
+*.md
+!README.md
+docs/
+DEPLOY.md
+DOCKER_README.md
+ENV_SETUP_GUIDE.md
+FEATURES_IMPLEMENTED.md
+INSTALL_NOTIFICATIONS.md
+LUONG_HOAT_DONG.md
+NOTIFICATIONS_SETUP.md
+OPTIMIZATION.md
+QUICK_START*.md
+SEPAY_SETUP.md
+SPEEDSMS_SETUP.md
+SSO_SETUP.md
+UX_IMPROVEMENTS.md
+VNPAY_CONFIG.md
+WINDOWS_COMMANDS.*
 
 # Environment files
 .env
 .env.*
+!.env.example
+env-*.txt
 
-# Dependencies
-node_modules
-vendor
-
-# Storage and cache
-storage/app/*
-storage/framework/cache/*
-storage/framework/sessions/*
-storage/framework/views/*
-storage/logs/*
-bootstrap/cache/*
-
-# IDE files
-.vscode
+# IDE
 .idea
+.vscode
 *.swp
 *.swo
+*~
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Testing
-tests
-phpunit.xml
-.phpunit.result.cache
+# Docker
+docker-compose.yml
+Dockerfile
+!Dockerfile.production
 
-# Documentation
-README.md
-*.md
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Laravel
+/storage/*.key
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
+
+# Testing
+.phpunit.result.cache
+/tests
 
 # Build artifacts
-public/hot
-public/storage
-public/mix-manifest.json
+/public/hot
+/public/storage
+/public/build
 
-# Temporary files
-*.tmp
-*.log
+# Database
+*.sqlite
+*.sqlite-journal
+database/database.sqlite
+
+# Backup files
+*.sql
+backup.sh
+deploy.sh
+
+# Makefile
+Makefile

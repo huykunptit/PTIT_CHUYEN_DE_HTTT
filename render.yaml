@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: cinemat-web
+    env: docker
+    dockerfilePath: ./Dockerfile.production
+    dockerContext: .
+    plan: starter
+    region: singapore
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_LEVEL
+        value: info
+      # Database - Use Render PostgreSQL or external MySQL
+      - key: DB_CONNECTION
+        value: mysql
+      # Redis - Use Render Redis or external Redis
+      - key: CACHE_DRIVER
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: BROADCAST_DRIVER
+        value: pusher
+      # Set these in Render dashboard
+      # - key: APP_KEY
+      #   sync: false
+      # - key: DB_HOST
+      #   sync: false
+      # - key: DB_DATABASE
+      #   sync: false
+      # - key: DB_USERNAME
+      #   sync: false
+      # - key: DB_PASSWORD
+      #   sync: false
+      # - key: REDIS_HOST
+      #   sync: false
+      # - key: REDIS_PASSWORD
+      #   sync: false
+
+databases:
+  - name: cinemat-db
+    databaseName: cinemat
+    user: cinemat
+    plan: starter
+    region: singapore
+
