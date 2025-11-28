@@ -21,11 +21,15 @@ RUN apk add --no-cache \
     nodejs \
     npm \
     nginx \
-    supervisor
+    supervisor \
+    mariadb-dev \
+    mysql-client \
+    imagemagick \
+    imagemagick-dev
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-jpeg --with-webp \
-    && docker-php-ext-install pdo_mysql pdo_pgsql bcmath intl gd zip opcache
+    && docker-php-ext-install pdo_mysql bcmath intl gd zip opcache
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
@@ -49,7 +53,7 @@ COPY . .
 RUN composer run-script post-autoload-dump
 
 # Install Node.js dependencies and build assets
-RUN npm install && npm run build
+RUN npm install && npm run build || echo "Build assets skipped if no assets to build"
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
@@ -64,6 +68,9 @@ RUN mkdir -p /var/www/html/storage/app/public \
 # Set permissions
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Create supervisor log directory
+RUN mkdir -p /var/log/supervisor /var/run
+
 # Copy Nginx configuration
 COPY docker/nginx/nginx.production.conf /etc/nginx/http.d/default.conf
 
@@ -76,6 +83,10 @@ RUN chmod +x /usr/local/bin/start.sh
 
 # Expose port 80
 EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost/health || exit 1
 
 # Use supervisor to manage nginx and php-fpm
 CMD ["/usr/local/bin/start.sh"]

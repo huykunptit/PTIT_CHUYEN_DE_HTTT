@@ -10,7 +10,8 @@ use App\Events\PaymentSuccess;
 use App\Events\BookingConfirmed;
 use App\Notifications\PaymentSuccessNotification;
 use App\Notifications\BookingConfirmedNotification;
-use App\Mail\TicketPdfMail;
+use App\Mail\PaymentSuccessMail;
+use App\Mail\PaymentFailureMail;
 use App\Models\Promotion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +30,11 @@ class PaymentController extends Controller
     public function index(Booking $booking)
     {
         if ($booking->status !== 'PENDING') {
+            Log::warning('Payment index accessed with invalid booking status', [
+                'booking_id' => $booking->id,
+                'status' => $booking->status,
+                'expected' => 'PENDING',
+            ]);
             return redirect()->route('home')->with('error', 'Booking không hợp lệ');
         }
         
@@ -43,6 +49,11 @@ class PaymentController extends Controller
         ]);
         
         if ($booking->status !== 'PENDING') {
+            Log::warning('VNPay payment attempt with invalid booking status', [
+                'booking_id' => $booking->id,
+                'status' => $booking->status,
+                'expected' => 'PENDING',
+            ]);
             return redirect()->route('home')->with('error', 'Booking không hợp lệ');
         }
 
@@ -88,6 +99,11 @@ class PaymentController extends Controller
     public function demo(Request $request, Booking $booking)
     {
         if ($booking->status !== 'PENDING') {
+            Log::warning('Demo payment accessed with invalid booking status', [
+                'booking_id' => $booking->id,
+                'status' => $booking->status,
+                'expected' => 'PENDING',
+            ]);
             return redirect()->route('home')->with('error', 'Booking không hợp lệ');
         }
         
@@ -102,6 +118,11 @@ class PaymentController extends Controller
     public function processDemo(Request $request, Booking $booking)
     {
         if ($booking->status !== 'PENDING') {
+            Log::warning('Demo payment processing attempted with invalid booking status', [
+                'booking_id' => $booking->id,
+                'status' => $booking->status,
+                'expected' => 'PENDING',
+            ]);
             return redirect()->route('home')->with('error', 'Booking không hợp lệ');
         }
         
@@ -134,7 +155,7 @@ class PaymentController extends Controller
             ]);
             
             // Reload booking với relationships
-            $booking->load(['user', 'showtime.movie', 'showtime.room.cinema', 'tickets', 'promotions']);
+            $booking->load(['user', 'showtime.movie', 'showtime.room.cinema', 'tickets.seat', 'promotions']);
             
             // Save promotion usage
             $this->savePromotionUsage($booking);
@@ -144,10 +165,7 @@ class PaymentController extends Controller
                 $booking->user->notify(new PaymentSuccessNotification($booking));
                 $booking->user->notify(new BookingConfirmedNotification($booking));
                 
-                // Gửi email PDF cho mỗi ticket
-                foreach ($booking->tickets as $ticket) {
-                    Mail::to($booking->user->email)->send(new TicketPdfMail($ticket));
-                }
+                $this->sendPaymentSuccessMail($booking, $booking->payment_details ?? []);
             }
             
             // Broadcast events
@@ -215,7 +233,7 @@ class PaymentController extends Controller
                 ]);
 
                 // Reload booking với relationships
-                $booking->load(['user', 'showtime.movie', 'showtime.room.cinema']);
+                $booking->load(['user', 'showtime.movie', 'showtime.room.cinema', 'tickets.seat']);
 
                 // Save promotion usage
                 $this->savePromotionUsage($booking);
@@ -225,10 +243,7 @@ class PaymentController extends Controller
                     $booking->user->notify(new PaymentSuccessNotification($booking));
                     $booking->user->notify(new BookingConfirmedNotification($booking));
                     
-                    // Gửi email PDF cho mỗi ticket
-                    foreach ($booking->tickets as $ticket) {
-                        Mail::to($booking->user->email)->send(new TicketPdfMail($ticket));
-                    }
+                    $this->sendPaymentSuccessMail($booking, $returnData['all'] ?? []);
                 }
                 
                 // Broadcast events
@@ -251,20 +266,12 @@ class PaymentController extends Controller
                 'payment_details' => $returnData['all'],
             ]);
 
-            $errorMessages = [
-                '07' => 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
-                '09' => 'Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking',
-                '10' => 'Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần',
-                '11' => 'Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch.',
-                '12' => 'Thẻ/Tài khoản bị khóa.',
-                '13' => 'Nhập sai mật khẩu xác thực giao dịch (OTP). Xin vui lòng thực hiện lại giao dịch.',
-                '51' => 'Tài khoản không đủ số dư để thực hiện giao dịch.',
-                '65' => 'Tài khoản đã vượt quá hạn mức giao dịch trong ngày.',
-                '75' => 'Ngân hàng thanh toán đang bảo trì.',
-                '79' => 'Nhập sai mật khẩu thanh toán quá số lần quy định.',
-            ];
+            $errorMessage = $this->mapVnpayErrorMessage($vnp_ResponseCode);
 
-            $errorMessage = $errorMessages[$vnp_ResponseCode] ?? 'Thanh toán thất bại!';
+            if ($booking->user) {
+                $errorMessage = $this->mapVnpayErrorMessage($vnp_ResponseCode);
+                $this->sendPaymentFailureMail($booking, $errorMessage, $returnData['all'] ?? []);
+            }
 
             Log::warning('VNPay return: Payment failed', [
                 'booking_id' => $booking->id,
@@ -357,7 +364,7 @@ class PaymentController extends Controller
                     ]);
                     
             // Reload booking với relationships
-            $booking->load(['user', 'showtime.movie', 'showtime.room.cinema', 'promotions']);
+            $booking->load(['user', 'showtime.movie', 'showtime.room.cinema', 'tickets.seat', 'promotions']);
 
             // Save promotion usage
             $this->savePromotionUsage($booking);
@@ -367,10 +374,7 @@ class PaymentController extends Controller
                 $booking->user->notify(new PaymentSuccessNotification($booking));
                 $booking->user->notify(new BookingConfirmedNotification($booking));
                 
-                // Gửi email PDF cho mỗi ticket
-                foreach ($booking->tickets as $ticket) {
-                    Mail::to($booking->user->email)->send(new TicketPdfMail($ticket));
-                }
+                $this->sendPaymentSuccessMail($booking, $inputData);
             }
             
             // Broadcast events
@@ -392,6 +396,11 @@ class PaymentController extends Controller
                 'payment_status' => 'FAILED',
                 'payment_details' => $inputData,
             ]);
+
+            if ($booking->user) {
+                $message = $this->mapVnpayErrorMessage($vnp_ResponseCode);
+                $this->sendPaymentFailureMail($booking, $message, $inputData);
+            }
 
             Log::warning('VNPay IPN: Payment failed', [
                 'booking_id' => $booking->id,
@@ -482,5 +491,43 @@ class PaymentController extends Controller
                     'updated_at' => now(),
                 ]);
         }
+    }
+
+    /**
+     * Send payment success email
+     */
+    protected function sendPaymentSuccessMail(Booking $booking, array $paymentDetails = []): void
+    {
+        $booking->loadMissing(['tickets.seat', 'showtime.movie', 'showtime.room.cinema', 'promotions']);
+
+        Mail::to($booking->user->email)->send(new PaymentSuccessMail($booking, $paymentDetails));
+    }
+
+    /**
+     * Send payment failure email
+     */
+    protected function sendPaymentFailureMail(Booking $booking, string $message, array $paymentDetails = []): void
+    {
+        $booking->loadMissing(['tickets.seat', 'showtime.movie', 'showtime.room.cinema']);
+
+        Mail::to($booking->user->email)->send(new PaymentFailureMail($booking, $message, $paymentDetails));
+    }
+
+    protected function mapVnpayErrorMessage(string $code): string
+    {
+        $errorMessages = [
+            '07' => 'Trừ tiền thành công nhưng giao dịch bị nghi ngờ.',
+            '09' => 'Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking.',
+            '10' => 'Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần.',
+            '11' => 'Đã hết hạn chờ thanh toán. Vui lòng thực hiện lại giao dịch.',
+            '12' => 'Thẻ/Tài khoản bị khóa.',
+            '13' => 'Nhập sai OTP quá số lần quy định.',
+            '51' => 'Tài khoản không đủ số dư để thực hiện giao dịch.',
+            '65' => 'Tài khoản vượt quá hạn mức giao dịch trong ngày.',
+            '75' => 'Ngân hàng thanh toán đang bảo trì.',
+            '79' => 'Nhập sai mật khẩu thanh toán quá số lần quy định.',
+        ];
+
+        return $errorMessages[$code] ?? 'Thanh toán thất bại!';
     }
 }

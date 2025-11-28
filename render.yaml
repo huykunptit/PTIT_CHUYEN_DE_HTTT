@@ -16,9 +16,9 @@ services:
         value: stack
       - key: LOG_LEVEL
         value: info
-      # Database - Use Render PostgreSQL or external MySQL
+      # Database - Use Render PostgreSQL
       - key: DB_CONNECTION
-        value: mysql
+        value: pgsql
       # Redis - Use Render Redis or external Redis
       - key: CACHE_DRIVER
         value: redis

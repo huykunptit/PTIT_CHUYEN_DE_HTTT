@@ -14,7 +14,7 @@
                 </div>
             </div>
 
-            <div class="card bg-dark border-secondary mt-4">
+            <div class="card bg-light border-secondary mt-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-ticket-alt me-2"></i>Thông tin vé

@@ -17,14 +17,17 @@ class BookingConfirmed implements ShouldBroadcast
 
     public $booking;
     public $message;
+    protected string $actionLabel = 'Đặt vé';
+    protected string $statusLabel = 'Đã xác nhận';
+    protected string $level = 'success';
 
     /**
      * Create a new event instance.
      */
     public function __construct(Booking $booking)
     {
-        $this->booking = $booking;
-        $this->message = "Đặt vé {$booking->booking_code} đã được xác nhận thành công!";
+        $this->booking = $booking->loadMissing(['user']);
+        $this->message = $this->buildMessage();
     }
 
     /**
@@ -40,6 +43,7 @@ class BookingConfirmed implements ShouldBroadcast
         
         // Broadcast to admin channel
         $channels[] = new PrivateChannel('admin.notifications');
+        $channels[] = new PrivateChannel('staff.notifications');
         
         return $channels;
     }
@@ -60,11 +64,21 @@ class BookingConfirmed implements ShouldBroadcast
         return [
             'id' => $this->booking->id,
             'booking_code' => $this->booking->booking_code,
+            'user_name' => optional($this->booking->user)->name ?? 'Khách hàng',
             'message' => $this->message,
+            'action_label' => $this->actionLabel,
+            'status_label' => $this->statusLabel,
+            'level' => $this->level,
             'status' => $this->booking->status,
             'amount' => $this->booking->final_amount,
             'created_at' => $this->booking->created_at->toIso8601String(),
         ];
+    }
+
+    protected function buildMessage(): string
+    {
+        $name = optional($this->booking->user)->name ?? 'Khách hàng';
+        return "{$name} - {$this->actionLabel} - {$this->statusLabel}";
     }
 }
 

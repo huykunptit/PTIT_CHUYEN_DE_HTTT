@@ -37,11 +37,13 @@ class TicketController extends Controller
         $ticket->load(['booking.user', 'booking.showtime.movie', 'booking.showtime.room.cinema', 'seat']);
 
         $user = auth()->user();
-        if (!$user || ($ticket->booking->user_id !== $user->id && $user->role !== 'admin')) {
+        if (!$user || ($ticket->booking->user_id !== $user->id && !in_array($user->role, ['admin', 'staff']))) {
             abort(403);
         }
 
-        return view('frontend.tickets.detail', compact('ticket'));
+        $canPrint = in_array($user->role, ['admin', 'staff']);
+
+        return view('frontend.tickets.detail', compact('ticket', 'canPrint'));
     }
 
     /**

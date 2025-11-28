@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Events\BookingCreated;
 use App\Models\Showtime;
 use App\Models\Seat;
 use App\Models\Booking;
@@ -93,6 +94,11 @@ class BookingController extends Controller
                 'status' => 'BOOKED',
             ]);
         }
+
+        $booking->load(['user']);
+
+        // Broadcast booking created event for staff/admin
+        event(new BookingCreated($booking));
 
         // Release held seats (they are now booked)
         $this->seatHoldService->releaseSeats($showtime->id, $request->seat_ids);

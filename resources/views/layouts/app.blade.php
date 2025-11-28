@@ -119,7 +119,7 @@
             border-radius: 25px;
             color: var(--text-primary);
             padding: 10px 20px;
-            width: 300px;
+            width: 100%;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -416,6 +416,20 @@
             border-radius: 3px;
         }
 
+        .movie-card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .movie-card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .movie-card-hover:hover .movie-poster {
+            transform: scale(1.05);
+        }
+
         .movie-card {
             min-width: 200px;
             background: #ffffff;
@@ -628,6 +642,7 @@
             }
             
             .search-bar {
+                width: 100% !important;
                 width: 100%;
                 margin: 1rem 0;
             }
@@ -645,6 +660,151 @@
                 display: none;
             }
         }
+        .search-bar:focus::placeholder {
+            opacity: 0.5;
+        }
+
+        /* Search Suggestions Styles */
+        .search-container {
+            position: relative;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1050;
+            margin-top: 8px;
+        }
+
+        .search-suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .search-suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-suggestion-item:hover,
+        .search-suggestion-item.active {
+            background: #f8f9fa;
+        }
+
+        .search-suggestion-poster {
+            width: 50px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .search-suggestion-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-suggestion-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .search-suggestion-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .search-suggestion-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+        }
+        /* Pagination Styles */
+        Đây là code CSS hoàn chỉnh cho pagination: css/* Pagination Styles */
+        .pagination {
+            gap: 0.5rem;
+        }
+
+        .pagination .page-item {
+            margin: 0;
+        }
+
+        .pagination .page-link {
+            border: none;
+            border-radius: 8px;
+            color: var(--primary-color);
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            min-width: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+        }
+
+        .pagination .page-link:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            background: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-item:first-child .page-link,
+        .pagination .page-item:last-child .page-link {
+            padding: 0.5rem 1rem;
+            font-size: 0 !important;
+        }
+
+        /* Show only custom arrows */
+        .pagination .page-item:first-child .page-link::after {
+            content: '‹';
+            font-size: 1.5rem !important;
+            line-height: 1;
+        }
+
+        .pagination .page-item:last-child .page-link::after {
+            content: '›';
+            font-size: 1.5rem !important;
+            line-height: 1;
+        }
+
+        /* Force hide SVG icons */
+        .pagination .page-item:first-child .page-link svg,
+        .pagination .page-item:last-child .page-link svg {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
     </style>
     @yield('styles')
 </head>
@@ -658,8 +818,15 @@
             </a>
             
             <!-- Search Bar -->
-            <div class="d-flex flex-grow-1 justify-content-center">
-                <input type="text" class="search-bar" placeholder="🔍 Tìm kiếm phim, rạp chiếu">
+            <div class="d-flex flex-grow-0 flex-shrink-0 justify-content-center position-relative" style="width: 100%; max-width: 420px;">
+                <div class="search-container w-100 position-relative">
+                    <input type="text" 
+                           class="search-bar" 
+                           id="movie-search" 
+                           placeholder="🔍 Tìm kiếm phim, rạp chiếu"
+                           autocomplete="off">
+                    <div id="search-suggestions" class="search-suggestions" style="display: none;"></div>
+                </div>
             </div>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -675,30 +842,12 @@
                         <a class="nav-link" href="{{ route('movies.index') }}">Phim đang chiếu</a>
                     </li>
                 
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Rạp chiếu</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Khuyến mãi</a>
-                    </li>
+                  
                 </ul>
                 
                 <ul class="navbar-nav">
                    
                     @auth
-                        @if(Auth::user()->role === 'admin')
-                            <li class="nav-item">
-                                <a class="nav-link text-danger fw-bold" href="{{ route('admin.dashboard') }}">
-                                    <i class="fas fa-crown me-1"></i>Admin Panel
-                                </a>
-                            </li>
-                        @elseif(Auth::user()->role === 'staff')
-                            <li class="nav-item">
-                                <a class="nav-link text-primary fw-bold" href="{{ route('staff.dashboard') }}">
-                                    <i class="fas fa-user-tie me-1"></i>Staff Panel
-                                </a>
-                            </li>
-                        @endif
                         <li class="nav-item dropdown">
                             <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" id="notification-dropdown">
                                 <i class="fas fa-bell"></i>
@@ -908,17 +1057,139 @@
             });
         });
 
-        // Search functionality
-        const searchBar = document.querySelector('.search-bar');
-        if (searchBar) {
-            searchBar.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    const query = this.value.trim();
-                    if (query) {
-                        window.location.href = `{{ route('movies.index') }}?search=${encodeURIComponent(query)}`;
+        // Search functionality with autocomplete
+        const searchBar = document.getElementById('movie-search');
+        const suggestionsContainer = document.getElementById('search-suggestions');
+        let searchTimeout = null;
+        let selectedIndex = -1;
+        let suggestions = [];
+
+        if (searchBar && suggestionsContainer) {
+            // Handle input for autocomplete
+            searchBar.addEventListener('input', function(e) {
+                const query = this.value.trim();
+                
+                clearTimeout(searchTimeout);
+                
+                if (query.length < 2) {
+                    suggestionsContainer.style.display = 'none';
+                    suggestions = [];
+                    return;
+                }
+
+                // Debounce search
+                searchTimeout = setTimeout(() => {
+                    fetch(`/api/search/autocomplete?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.data.length > 0) {
+                                suggestions = data.data;
+                                renderSuggestions(data.data);
+                                suggestionsContainer.style.display = 'block';
+                            } else {
+                                suggestionsContainer.style.display = 'none';
+                                suggestions = [];
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Search error:', error);
+                            suggestionsContainer.style.display = 'none';
+                        });
+                }, 300);
+            });
+
+            // Handle keyboard navigation
+            searchBar.addEventListener('keydown', function(e) {
+                if (suggestions.length === 0) {
+                    if (e.key === 'Enter') {
+                        const query = this.value.trim();
+                        if (query) {
+                            window.location.href = `{{ route('movies.index') }}?search=${encodeURIComponent(query)}`;
+                        }
                     }
+                    return;
+                }
+
+                const items = suggestionsContainer.querySelectorAll('.search-suggestion-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, -1);
+                    updateSelection(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+                        window.location.href = suggestions[selectedIndex].url;
+                    } else {
+                        const query = this.value.trim();
+                        if (query) {
+                            window.location.href = `{{ route('movies.index') }}?search=${encodeURIComponent(query)}`;
+                        }
+                    }
+                } else if (e.key === 'Escape') {
+                    suggestionsContainer.style.display = 'none';
+                    selectedIndex = -1;
                 }
             });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchBar.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            // Render suggestions
+            function renderSuggestions(data) {
+                selectedIndex = -1;
+                suggestionsContainer.innerHTML = data.map((movie, index) => {
+                    const statusBadge = movie.status === 'NOW_SHOWING' 
+                        ? '<span class="badge bg-success search-suggestion-badge">Đang chiếu</span>'
+                        : movie.status === 'COMING_SOON'
+                        ? '<span class="badge bg-info search-suggestion-badge">Sắp chiếu</span>'
+                        : '';
+                    
+                    const poster = movie.poster_url 
+                        ? `<img src="${movie.poster_url}" alt="${movie.title}" class="search-suggestion-poster" onerror="this.style.display='none'">`
+                        : '<div class="search-suggestion-poster bg-light d-flex align-items-center justify-content-center"><i class="fas fa-film text-muted"></i></div>';
+                    
+                    return `
+                        <div class="search-suggestion-item" data-index="${index}" data-url="${movie.url}">
+                            ${poster}
+                            <div class="search-suggestion-info">
+                                <div class="search-suggestion-title">${movie.title}</div>
+                                <div class="search-suggestion-meta">
+                                    <span>${movie.genre}</span>
+                                    ${statusBadge}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add click handlers
+                suggestionsContainer.querySelectorAll('.search-suggestion-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        window.location.href = this.dataset.url;
+                    });
+                });
+            }
+
+            // Update selection highlight
+            function updateSelection(items) {
+                items.forEach((item, index) => {
+                    if (index === selectedIndex) {
+                        item.classList.add('active');
+                        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
         }
     </script>
 

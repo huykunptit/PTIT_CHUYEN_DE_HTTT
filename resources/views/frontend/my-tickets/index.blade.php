@@ -104,7 +104,7 @@
                             <img src="{{ $booking->showtime->movie->poster_url }}" alt="{{ $booking->showtime->movie->title }}" 
                                  class="me-3" style="width: 80px; height: 120px; object-fit: cover; border-radius: 8px;">
                         @else
-                            <div class="me-3 bg-dark d-flex align-items-center justify-content-center" 
+                            <div class="me-3 bg-light d-flex align-items-center justify-content-center" 
                                  style="width: 80px; height: 120px; border-radius: 8px;">
                                 <i class="fas fa-film text-white fa-2x"></i>
                             </div>

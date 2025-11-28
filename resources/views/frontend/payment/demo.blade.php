@@ -7,7 +7,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <!-- Payment Method Header -->
-            <div class="card bg-dark border-secondary mb-4">
+            <div class="card bg-light border-secondary mb-4">
                 <div class="card-header bg-primary text-white text-center">
                     <h4 class="mb-0">
                         @if($method === 'vnpay_qr')
@@ -22,7 +22,7 @@
             </div>
 
             <!-- Booking Info -->
-            <div class="card bg-dark border-secondary mb-4">
+            <div class="card bg-light border-secondary mb-4">
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -45,7 +45,7 @@
 
             @if($method === 'vnpay_qr')
             <!-- QR Code Payment -->
-            <div class="card bg-dark border-secondary mb-4">
+            <div class="card bg-light border-secondary mb-4">
                 <div class="card-body text-center">
                     <h5 class="text-white mb-4">Quét mã QR để thanh toán</h5>
                     
@@ -85,7 +85,7 @@
 
             @elseif($method === 'vnpay_atm')
             <!-- ATM Card Payment -->
-            <div class="card bg-dark border-secondary mb-4">
+            <div class="card bg-light border-secondary mb-4">
                 <div class="card-body">
                     <h5 class="text-white mb-4">Nhập thông tin thẻ ATM</h5>
                     
@@ -141,7 +141,7 @@
 
             @else
             <!-- International Card Payment -->
-            <div class="card bg-dark border-secondary mb-4">
+            <div class="card bg-light border-secondary mb-4">
                 <div class="card-body">
                     <h5 class="text-white mb-4">Nhập thông tin thẻ quốc tế (Visa/MasterCard)</h5>
                     

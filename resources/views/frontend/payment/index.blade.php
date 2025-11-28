@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4">
-                            <div class="bg-dark d-flex align-items-center justify-content-center" 
+                            <div class="bg-light d-flex align-items-center justify-content-center" 
                                  style="height: 120px; border-radius: 8px;">
                                 <i class="fas fa-film text-light" style="font-size: 2rem;"></i>
                             </div>
@@ -58,16 +58,21 @@
                     
                     <!-- Selected Seats -->
                     <div class="mt-4">
-                        <h6>Ghế đã chọn:</h6>
-                        <div class="row">
-                            @foreach($booking->tickets as $ticket)
-                            <div class="col-md-3 mb-2">
-                                <div class="border rounded p-2 text-center">
-                                    <strong>{{ $ticket->seat->row }}{{ $ticket->seat->number }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ number_format($ticket->price, 0, ',', '.') }}₫</small>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Ghế đã chọn:</h6>
+                            <span class="badge bg-primary">{{ $booking->tickets->count() }} ghế</span>
+                        </div>
+                        <div class="selected-seats-container">
+                            <div class="row g-2">
+                                @foreach($booking->tickets as $ticket)
+                                <div class="col-md-3 col-sm-4 col-6">
+                                    <div class="seat-card border rounded p-2 text-center">
+                                        <strong class="d-block">{{ $ticket->seat->row }}{{ $ticket->seat->number }}</strong>
+                                        <small class="text-muted">{{ number_format($ticket->price, 0, ',', '.') }}₫</small>
+                                    </div>
                                 </div>
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                     
@@ -200,6 +205,20 @@
 
                         <!-- SePay Tab -->
                         <div class="tab-pane fade" id="sepay-panel" role="tabpanel">
+                            @php
+                                $sepayAccountNumber = config('sepay.account_number');
+                                $sepayAccountName = config('sepay.account_name');
+                                $sepayBankName = config('sepay.bank_name');
+                                $sepayBankBranch = config('sepay.bank_branch');
+                                $sepayNote = config('sepay.note');
+                                $transferContent = "SE{$booking->booking_code}";
+                                $qrUrl = ($sepayAccountNumber && $sepayBankName)
+                                    ? 'https://qr.sepay.vn/img?acc=' . urlencode($sepayAccountNumber)
+                                        . '&bank=' . urlencode($sepayBankName)
+                                        . '&amount=' . ($booking->final_amount ?? 0)
+                                        . '&des=' . urlencode($transferContent)
+                                    : null;
+                            @endphp
                             <div class="alert alert-info">
                                 <h6><i class="fas fa-info-circle me-2"></i>Hướng dẫn thanh toán</h6>
                                 <p class="mb-2">Vui lòng chuyển khoản đúng số tiền với nội dung chuyển khoản:</p>
@@ -211,10 +230,60 @@
 
                             <div class="card bg-light mb-3">
                                 <div class="card-body">
-                                    <h6 class="card-title"><i class="fas fa-university me-2"></i>Thông tin tài khoản ngân hàng</h6>
-                                    <p class="mb-1"><strong>Số tiền:</strong> <span class="text-primary fs-5">{{ number_format($booking->final_amount, 0, ',', '.') }}₫</span></p>
-                                    <p class="mb-1"><strong>Nội dung chuyển khoản:</strong> <code>SE{{ $booking->booking_code }}</code></p>
-                                    <p class="mb-0"><small class="text-muted">Vui lòng chuyển khoản đúng số tiền và nội dung để hệ thống tự động xác nhận.</small></p>
+                                    <h6 class="card-title d-flex align-items-center justify-content-between">
+                                        <span><i class="fas fa-university me-2"></i>Thông tin tài khoản ngân hàng</span>
+                                        @if($qrUrl)
+                                            <small class="text-muted">Quét QR để thanh toán nhanh</small>
+                                        @endif
+                                    </h6>
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Ngân hàng</small>
+                                            <div class="fw-bold">{{ $sepayBankName }}</div>
+                                            @if($sepayBankBranch)
+                                                <div class="small text-muted">{{ $sepayBankBranch }}</div>
+                                            @endif
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Tên tài khoản</small>
+                                            <div class="fw-bold text-uppercase">{{ $sepayAccountName }}</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Số tài khoản</small>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fs-5 text-primary fw-bold" id="sepayAccountNumber">{{ $sepayAccountNumber ?? 'Chưa cấu hình' }}</span>
+                                                @if($sepayAccountNumber)
+                                                <button type="button" class="btn btn-sm btn-outline-secondary copy-btn" data-copy-target="sepayAccountNumber">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Số tiền cần chuyển</small>
+                                            <div class="fs-5 text-primary fw-bold">{{ number_format($booking->final_amount, 0, ',', '.') }}₫</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Nội dung chuyển khoản</small>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <code class="fs-6 fw-bold text-primary" id="sepayTransferContent">{{ $transferContent }}</code>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary copy-btn" data-copy-target="sepayTransferContent">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @if($qrUrl)
+                                        <div class="col-md-6 text-center">
+                                            <small class="text-muted d-block mb-2">QR chuyển khoản</small>
+                                            <img src="{{ $qrUrl }}" alt="QR thanh toán SePay" class="img-fluid border rounded bg-white p-2 sepay-qr-img">
+                                        </div>
+                                        @endif
+                                    </div>
+                                    @if($sepayNote)
+                                    <div class="alert alert-warning mt-3 mb-0 py-2 px-3">
+                                        <i class="fas fa-sticky-note me-2"></i>{{ $sepayNote }}
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -386,5 +455,72 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Copy helper for SePay info
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-copy-target');
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            const text = target.innerText || target.textContent;
+            navigator.clipboard.writeText(text.trim()).then(() => {
+                this.innerHTML = '<i class="fas fa-check text-success"></i>';
+                setTimeout(() => this.innerHTML = '<i class="fas fa-copy"></i>', 1500);
+            });
+        });
+    });
+});
 </script>
+
+<style>
+.selected-seats-container {
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px 0;
+}
+
+.selected-seats-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.selected-seats-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.selected-seats-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.selected-seats-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.seat-card {
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.seat-card:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.seat-card strong {
+    font-size: 1.1rem;
+    color: #495057;
+}
+
+.seat-card small {
+    font-size: 0.85rem;
+}
+</style>
 @endsection

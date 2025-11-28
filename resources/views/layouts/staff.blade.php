@@ -198,6 +198,67 @@
     <script src="https://unpkg.com/bootstrap-table@1.21.4/dist/locale/bootstrap-table-vi-VN.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.21.4/dist/extensions/export/bootstrap-table-export.min.js"></script>
     <script src="https://unpkg.com/tableexport.jquery.plugin@1.10.21/tableExport.min.js"></script>
+    @auth
+    @if(config('broadcasting.default') === 'pusher' && config('broadcasting.connections.pusher.key'))
+        <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+        <script>
+            (function () {
+                try {
+                    const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
+                        cluster: '{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}',
+                        encrypted: true,
+                        authEndpoint: '/broadcasting/auth',
+                        auth: {
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        }
+                    });
+
+                    const channel = pusher.subscribe('private-staff.notifications');
+                    ['booking.created', 'payment.success', 'booking.cancelled'].forEach(eventName => {
+                        channel.bind(eventName, function (data) {
+                            renderToast(buildMessage(data), data.level || 'info');
+                        });
+                    });
+                } catch (error) {
+                    console.error('Pusher staff init error:', error);
+                }
+
+                function buildMessage(data) {
+                    if (data.message) {
+                        return data.message;
+                    }
+                    const name = data.user_name || 'Khách hàng';
+                    const action = data.action_label || 'Đặt vé';
+                    const status = data.status_label || data.status || '';
+                    return status ? `${name} - ${action} - ${status}` : `${name} - ${action}`;
+                }
+
+                function renderToast(message, level) {
+                    const variants = {
+                        success: 'success',
+                        warning: 'warning',
+                        danger: 'danger',
+                        info: 'info'
+                    };
+                    const alertType = variants[level] || 'info';
+                    const toast = document.createElement('div');
+                    toast.className = `alert alert-${alertType} alert-dismissible fade show position-fixed shadow`;
+                    toast.style.cssText = 'top: 90px; right: 20px; z-index: 1060; min-width: 320px;';
+                    toast.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">${message}</div>
+                            <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 6000);
+                }
+            })();
+        </script>
+    @endif
+    @endauth
     @yield('scripts')
 </body>
 </html>

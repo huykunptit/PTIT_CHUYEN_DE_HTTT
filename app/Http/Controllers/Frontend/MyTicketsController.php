@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Events\BookingCancelled;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -69,6 +70,10 @@ class MyTicketsController extends Controller
         // Hủy booking và giải phóng vé
         $booking->update(['status' => 'CANCELLED']);
         $booking->tickets()->update(['status' => 'AVAILABLE']);
+
+        $booking->load(['user']);
+
+        event(new BookingCancelled($booking));
 
         return redirect()->back()->with('success', 'Đã hủy booking thành công!');
     }

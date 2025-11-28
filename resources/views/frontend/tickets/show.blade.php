@@ -15,7 +15,7 @@
 
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-dark border-secondary">
+            <div class="card bg-light border-secondary">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-ticket-alt me-2"></i>Thông tin đặt vé
@@ -53,7 +53,7 @@
         
         @foreach($tickets as $ticket)
         <div class="col-md-6 mb-4">
-            <div class="card bg-dark border-secondary h-100">
+            <div class="card bg-light border-secondary h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>

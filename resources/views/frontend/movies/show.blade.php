@@ -7,9 +7,18 @@
     <!-- Movie Header -->
     <div class="row mb-5">
         <div class="col-md-4">
-            <div class="d-flex align-items-center justify-content-center shadow-sm"
-                 style="height: 400px; border-radius: 16px; background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%);">
-                <i class="fas fa-film text-primary" style="font-size: 4rem;"></i>
+            <div class="position-relative shadow-sm rounded overflow-hidden" style="height: 400px; border-radius: 16px;">
+                @if($movie->poster_url)
+                    <img src="{{ $movie->poster_url }}" 
+                         alt="{{ $movie->title }}" 
+                         class="img-fluid" 
+                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;"
+                         onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.display='none'; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center h-100\'><i class=\'fas fa-film text-white\' style=\'font-size: 4rem; opacity: 0.5;\'></i></div>';">
+                @else
+                    <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-film text-white" style="font-size: 4rem; opacity: 0.5;"></i>
+                    </div>
+                @endif
             </div>
         </div>
         <div class="col-md-8">

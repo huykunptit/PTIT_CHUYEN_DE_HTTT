@@ -6,7 +6,7 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card bg-dark border-secondary">
+            <div class="card bg-light border-secondary ticket-print-area">
                 <div class="card-header bg-primary text-white text-center">
                     <h4 class="mb-0">
                         <i class="fas fa-ticket-alt me-2"></i>Chi tiết vé
@@ -96,9 +96,11 @@
                     </div>
 
                     <div class="d-grid gap-2">
-                        <a href="{{ route('tickets.print', $ticket->id) }}" class="btn btn-success" target="_blank">
-                            <i class="fas fa-print me-2"></i>In vé PDF
-                        </a>
+                        @if(!empty($canPrint) && $canPrint)
+                        <button type="button" class="btn btn-success" id="printTicketBtn">
+                            <i class="fas fa-print me-2"></i>In vé
+                        </button>
+                        @endif
                         <a href="{{ route('checkin.show') }}" class="btn btn-primary">
                             <i class="fas fa-qrcode me-2"></i>Check-in vé
                         </a>
@@ -112,4 +114,44 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .ticket-print-area,
+    .ticket-print-area * {
+        visibility: visible;
+    }
+    .ticket-print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #fff !important;
+        color: #000 !important;
+    }
+    .ticket-print-area .card-header,
+    .ticket-print-area .card-body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const printBtn = document.getElementById('printTicketBtn');
+    if (printBtn) {
+        printBtn.addEventListener('click', function () {
+            window.print();
+        });
+    }
+});
+</script>
+@endpush
 

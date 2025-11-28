@@ -6,7 +6,7 @@
 <div class="container py-5" style="min-height: 70vh;">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card bg-dark border-secondary">
+            <div class="card bg-light border-secondary">
                 <div class="card-header bg-primary text-white text-center">
                     <h4 class="mb-0">
                         <i class="fas fa-qrcode me-2"></i>Check-in vé xem phim
@@ -69,7 +69,7 @@
                 </div>
             </div>
 
-            <div class="card bg-dark border-secondary mt-4">
+            <div class="card bg-light border-secondary mt-4">
                 <div class="card-body">
                     <h6 class="text-white mb-3">
                         <i class="fas fa-info-circle me-2"></i>Thông tin check-in

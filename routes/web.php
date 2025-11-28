@@ -18,6 +18,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\PhoneAuthController;
 use App\Http\Controllers\Api\MovieApiController;
+use App\Http\Controllers\Api\MovieSearchController;
 
 // Auth Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -42,7 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 });
 Route::get('/payment/{booking}', [PaymentController::class, 'index'])->name('payment.index');
-Route::post('/payment/vnpay', [PaymentController::class, 'vnpay'])->name('payment.vnpay');
+Route::post('/payment/{booking}/vnpay', [PaymentController::class, 'vnpay'])->name('payment.vnpay');
 Route::get('/payment/demo/{booking}', [PaymentController::class, 'demo'])->name('payment.demo');
 Route::match(['get', 'post'], '/payment/demo/{booking}/process', [PaymentController::class, 'processDemo'])->name('payment.demo.process');
 Route::get('/payment/vnpay/return', [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
@@ -100,6 +101,9 @@ Route::prefix('api/movies')->name('api.movies.')->group(function () {
     Route::get('/{movieId}', [MovieApiController::class, 'show'])->name('show');
     Route::post('/clear-cache', [MovieApiController::class, 'clearCache'])->name('clear-cache');
 });
+
+// Search Autocomplete API
+Route::get('/api/search/autocomplete', [MovieSearchController::class, 'autocomplete'])->name('api.search.autocomplete');
 
 // Notifications API Routes
 Route::prefix('api/notifications')->middleware('auth')->group(function () {

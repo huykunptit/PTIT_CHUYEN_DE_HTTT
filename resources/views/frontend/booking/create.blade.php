@@ -11,7 +11,7 @@
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-md-2">
-                            <div class="bg-dark d-flex align-items-center justify-content-center" 
+                            <div class="bg-light d-flex align-items-center justify-content-center" 
                                  style="height: 120px; border-radius: 8px;">
                                 <i class="fas fa-film text-light" style="font-size: 2rem;"></i>
                             </div>
@@ -55,14 +55,14 @@
                         <i class="fas fa-chair me-2"></i>Chọn ghế
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="overflow-x: hidden;">
                     <form method="POST" action="{{ route('booking.store') }}" id="bookingForm">
                         @csrf
                         <input type="hidden" name="showtime_id" value="{{ $showtime->id }}">
                         
                         <!-- Screen -->
                         <div class="text-center mb-4">
-                            <div class="bg-dark text-light py-2 px-4 d-inline-block rounded">
+                            <div class="screen-display">
                                 <i class="fas fa-tv me-2"></i>Màn hình
                             </div>
                         </div>
@@ -79,7 +79,7 @@
                                     <strong>{{ $row }}</strong>
                                 </div>
                                 <div class="col-11">
-                                    <div class="d-flex gap-2">
+                                    <div class="d-flex gap-2" style="flex-wrap: nowrap; min-width: fit-content;">
                                         @foreach($rowSeats as $seat)
                                         <div class="seat-item">
                                             <input type="checkbox" 
@@ -141,6 +141,18 @@
                             $profileEditUrl = Route::has('profile.edit') ? route('profile.edit') : '#';
                         @endphp
                         <div class="card bg-light border-0 shadow-sm mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Tóm tắt đặt vé</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="bookingSummary">
+                                        <p class="text-muted">Chọn ghế để xem tóm tắt</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card bg-light border-0 shadow-sm mb-4">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div>
@@ -191,13 +203,19 @@
         </div>
         
         <div class="col-md-4">
-            <div class="card">
+            <div class="card booking-summary-card">
                 <div class="card-header">
                     <h6 class="mb-0">Tóm tắt đặt vé</h6>
                 </div>
-                <div class="card-body">
-                    <div id="bookingSummary">
-                        <p class="text-muted">Chọn ghế để xem tóm tắt</p>
+                <div class="card-body p-0 d-flex flex-column" style="max-height: calc(100vh - 300px);">
+                    <div id="bookingSummary" class="booking-summary-content flex-grow-1">
+                        <p class="text-muted text-center p-3 mb-0">Chọn ghế để xem tóm tắt</p>
+                    </div>
+                    <div id="bookingTotal" class="booking-total-section border-top p-3 bg-light" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-bold">Tổng cộng</span>
+                            <h4 class="text-primary mb-0" id="totalPrice">0₫</h4>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -206,6 +224,54 @@
 </div>
 
 <style>
+.screen-display {
+    background-color: #000;
+    color: #fff;
+    padding: 12px 80px;
+    display: inline-block;
+    border-radius: 50px 50px 0 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    min-width: 300px;
+}
+
+.screen-display::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    height: 20px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+    border-radius: 0 0 50% 50%;
+}
+
+.seat-layout {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    padding: 10px 0;
+}
+
+.seat-layout::-webkit-scrollbar {
+    height: 8px;
+}
+
+.seat-layout::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.seat-layout::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.seat-layout::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 .seat-label {
     display: inline-block;
     width: 40px;
@@ -217,6 +283,7 @@
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: bold;
+    flex-shrink: 0;
 }
 
 .seat-checkbox:checked + .seat-label {
@@ -276,23 +343,77 @@
     padding: 12px 16px;
 }
 
+.booking-summary-card {
+    position: sticky;
+    top: 20px;
+}
+
+.booking-summary-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1rem;
+}
+
+.booking-summary-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.booking-summary-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.booking-summary-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.booking-summary-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.booking-total-section {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
 .seat-summary-card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 12px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 0.75rem;
+}
+
+.seat-summary-card:last-child {
+    margin-bottom: 0;
 }
 
 .seat-summary-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
 }
 
 .seat-summary-type {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #64748b;
     text-transform: capitalize;
+    margin-top: 4px;
+}
+
+.seat-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.seat-list-container {
+    min-height: 0;
 }
 </style>
 
@@ -421,9 +542,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateSummary() {
         const selectedSeats = Array.from(checkboxes).filter(cb => cb.checked && !cb.disabled);
         const totalPrice = selectedSeats.reduce((sum, cb) => sum + parseFloat(cb.dataset.price), 0);
+        const totalSection = document.getElementById('bookingTotal');
+        const totalPriceElement = document.getElementById('totalPrice');
         
         if (selectedSeats.length === 0) {
-            summary.innerHTML = '<p class="text-muted text-center">Chọn ghế để xem tóm tắt</p>';
+            summary.innerHTML = '<p class="text-muted text-center p-3 mb-0">Chọn ghế để xem tóm tắt</p>';
+            if (totalSection) totalSection.style.display = 'none';
             bookButton.disabled = true;
         } else {
             const seatCards = selectedSeats.map(cb => {
@@ -438,33 +562,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
 
                 return `
-                    <div class="seat-summary-card mb-3">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="fw-bold fs-5">Ghế ${seatLabel}</div>
+                    <div class="seat-summary-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold" style="font-size: 1rem;">Ghế ${seatLabel}</div>
                                 <div class="seat-summary-type">${typeLabels[seatType] || 'Ghế thường'}</div>
                             </div>
-                            <div class="text-primary fw-bold fs-5">${price.toLocaleString('vi-VN')}₫</div>
+                            <div class="text-primary fw-bold ms-3" style="font-size: 1rem; white-space: nowrap;">
+                                ${price.toLocaleString('vi-VN')}₫
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
 
             summary.innerHTML = `
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0 text-muted">Ghế đã chọn</h6>
-                        <span class="badge bg-primary">${selectedSeats.length} ghế</span>
-                    </div>
+                <div class="seat-summary-header">
+                    <h6 class="mb-0 text-muted fw-bold">Ghế đã chọn</h6>
+                    <span class="badge bg-primary">${selectedSeats.length}</span>
+                </div>
+                <div class="seat-list-container">
                     ${seatCards}
                 </div>
-                <div class="border-top pt-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted">Tổng cộng</span>
-                        <h4 class="text-primary mb-0">${totalPrice.toLocaleString('vi-VN')}₫</h4>
-                    </div>
-                </div>
             `;
+            
+            if (totalSection) {
+                totalSection.style.display = 'block';
+                if (totalPriceElement) {
+                    totalPriceElement.textContent = totalPrice.toLocaleString('vi-VN') + '₫';
+                }
+            }
             bookButton.disabled = false;
         }
     }

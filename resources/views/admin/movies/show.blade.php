@@ -21,7 +21,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4">
-                        <div class="bg-dark d-flex align-items-center justify-content-center" 
+                        <div class="bg-light d-flex align-items-center justify-content-center" 
                              style="height: 300px; border-radius: 8px;">
                             <i class="fas fa-film text-light" style="font-size: 3rem;"></i>
                         </div>

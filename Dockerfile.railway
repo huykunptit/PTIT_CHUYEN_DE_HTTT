@@ -1,4 +1,5 @@
-FROM php:8.2-fpm-alpine
+# Railway-optimized Dockerfile
+FROM php:8.2-fpm-alpine AS base
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -42,7 +43,7 @@ WORKDIR /var/www/html
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies (without running scripts that need artisan)
+# Install PHP dependencies (production only)
 RUN composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader --no-dev --no-scripts
 
 # Copy the rest of the application
@@ -51,8 +52,8 @@ COPY . .
 # Now run composer scripts after all files are copied
 RUN composer run-script post-autoload-dump
 
-# Install Node.js dependencies and build assets (if needed)
-RUN npm install && npm run build || true
+# Install Node.js dependencies and build assets
+RUN npm install && npm run build || echo "Build assets skipped"
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
@@ -67,4 +68,26 @@ RUN mkdir -p /var/www/html/storage/app/public \
 # Set permissions
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-CMD ["php-fpm", "-y", "/usr/local/etc/php-fpm.conf", "-R"]
+# Create supervisor log directory
+RUN mkdir -p /var/log/supervisor /var/run
+
+# Copy Nginx configuration for Railway
+COPY docker/nginx/nginx.railway.conf /etc/nginx/http.d/default.conf
+
+# Copy supervisor configuration
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy startup script
+COPY docker/scripts/start-railway.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
+# Expose port (Railway will set PORT env var, default to 80)
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost/health || exit 1
+
+# Use supervisor to manage nginx and php-fpm
+CMD ["/usr/local/bin/start.sh"]
+

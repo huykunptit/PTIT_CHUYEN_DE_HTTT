@@ -42,10 +42,10 @@
 
 @section('scripts')
 <script>
-    const bookingsData = @json($bookings->map(function($booking) {
+    const bookingsData = {!! json_encode($bookings->map(function($booking) {
         return [
             'booking_code' => $booking->booking_code,
-            'customer_name' => $booking->user->name ?? 'N/A',
+            'customer_name' => (string) ($booking->user->name ?? 'N/A'),
             'movie_title' => $booking->showtime->movie->title,
             'cinema_name' => $booking->showtime->room->cinema->name,
             'showtime_date' => $booking->showtime->date->format('d/m/Y') . ' ' . \Carbon\Carbon::parse($booking->showtime->start_time)->format('H:i'),
@@ -53,7 +53,7 @@
             'status' => $booking->status,
             'id' => $booking->id,
         ];
-    }));
+    })) !!};
 
     $('#bookings-table').bootstrapTable({
         data: bookingsData
@@ -80,4 +80,3 @@
     }
 </script>
 @endsection
-

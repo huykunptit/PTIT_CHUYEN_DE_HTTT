@@ -71,4 +71,22 @@ class Movie extends Model
     {
         return $query->where('is_featured', true);
     }
+
+    /**
+     * Get the poster URL attribute
+     */
+    public function getPosterUrlAttribute()
+    {
+        if (!$this->poster) {
+            return null;
+        }
+
+        // Nếu là full URL (http/https) thì trả về trực tiếp
+        if (str_starts_with($this->poster, 'http://') || str_starts_with($this->poster, 'https://')) {
+            return $this->poster;
+        }
+
+        // Nếu là relative path thì trả về asset URL
+        return asset($this->poster);
+    }
 }

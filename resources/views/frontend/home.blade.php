@@ -38,9 +38,20 @@
         <div class="row g-4">
             @forelse($nowShowingMovies as $movie)
             <div class="col-6 col-md-3 col-lg-2">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 250px;">
-                        <i class="fas fa-film text-light" style="font-size: 3rem;"></i>
+                <div class="card border-0 shadow-sm h-100 movie-card-hover">
+                    <div class="position-relative" style="height: 250px; overflow: hidden;">
+                        @if($movie->poster_url)
+                            <img src="{{ $movie->poster_url }}" 
+                                 alt="{{ $movie->title }}" 
+                                 class="card-img-top movie-poster" 
+                                 style="height: 100%; width: 100%; object-fit: cover; transition: transform 0.3s ease;"
+                                 loading="lazy"
+                                 onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.display='none'; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center h-100\'><i class=\'fas fa-film text-white\' style=\'font-size: 3rem; opacity: 0.5;\'></i></div>';">
+                        @else
+                            <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <i class="fas fa-film text-white" style="font-size: 3rem; opacity: 0.5;"></i>
+                            </div>
+                        @endif
                     </div>
                     <div class="card-body">
                         <h6 class="card-title mb-2">{{ Str::limit($movie->title, 30) }}</h6>
@@ -130,9 +141,20 @@
         <div class="row g-4">
             @forelse($comingSoonMovies as $movie)
             <div class="col-6 col-md-3 col-lg-2">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 250px;">
-                        <i class="fas fa-film text-light" style="font-size: 3rem;"></i>
+                <div class="card border-0 shadow-sm h-100 movie-card-hover">
+                    <div class="position-relative" style="height: 250px; overflow: hidden;">
+                        @if($movie->poster_url)
+                            <img src="{{ $movie->poster_url }}" 
+                                 alt="{{ $movie->title }}" 
+                                 class="card-img-top movie-poster" 
+                                 style="height: 100%; width: 100%; object-fit: cover; transition: transform 0.3s ease;"
+                                 loading="lazy"
+                                 onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.display='none'; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center h-100\'><i class=\'fas fa-film text-white\' style=\'font-size: 3rem; opacity: 0.5;\'></i></div>';">
+                        @else
+                            <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <i class="fas fa-film text-white" style="font-size: 3rem; opacity: 0.5;"></i>
+                            </div>
+                        @endif
                     </div>
                     <div class="card-body">
                         <h6 class="card-title mb-2">{{ Str::limit($movie->title, 30) }}</h6>

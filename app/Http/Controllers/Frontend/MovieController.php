@@ -15,6 +15,16 @@ class MovieController extends Controller
     {
         $query = Movie::query();
         
+        // Search by title or description
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('title', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('genre', 'like', '%' . $searchTerm . '%');
+            });
+        }
+        
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
@@ -23,7 +33,8 @@ class MovieController extends Controller
             $query->where('genre', 'like', '%' . $request->genre . '%');
         }
         
-        $movies = $query->select('id', 'title', 'description', 'genre', 'rating', 'release_date', 'status')
+        $movies = $query->select('id', 'title', 'description', 'genre', 'rating', 'release_date', 'status', 'poster')
+            ->orderBy('release_date', 'desc')
             ->paginate(12);
         
         // Cache cinemas list for 1 hour

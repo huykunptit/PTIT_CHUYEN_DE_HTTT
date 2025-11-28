@@ -17,6 +17,11 @@ Broadcast::channel('admin.notifications', function ($user) {
     return $user->role === 'admin';
 });
 
+// Staff notifications channel
+Broadcast::channel('staff.notifications', function ($user) {
+    return $user->role === 'staff' || $user->role === 'admin';
+});
+
 // Public channel for seat map updates (all users can see seat status)
 Broadcast::channel('showtime.{showtimeId}.seats', function ($user, $showtimeId) {
     return true; // Public channel - anyone can listen
