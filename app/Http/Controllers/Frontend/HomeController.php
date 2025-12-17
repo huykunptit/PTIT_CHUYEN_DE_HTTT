@@ -22,15 +22,22 @@ class HomeController extends Controller
             
             // Phim đang chiếu - chỉ lấy các trường cần thiết
             $nowShowingMovies = Movie::where('status', 'NOW_SHOWING')
-                ->select('id', 'title', 'description', 'genre', 'rating', 'release_date', 'status')
+                ->select('id', 'title', 'description', 'poster', 'genre', 'rating', 'release_date', 'status', 'duration')
                 ->orderBy('created_at', 'desc')
                 ->take(8)
                 ->get();
             
             // Phim sắp chiếu
             $comingSoonMovies = Movie::where('status', 'COMING_SOON')
-                ->select('id', 'title', 'description', 'genre', 'rating', 'release_date', 'status')
+                ->select('id', 'title', 'description', 'poster', 'genre', 'rating', 'release_date', 'status', 'duration')
                 ->orderBy('release_date', 'asc')
+                ->take(6)
+                ->get();
+            
+            // Phim chưa chiếu (ENDED)
+            $endedMovies = Movie::where('status', 'ENDED')
+                ->select('id', 'title', 'description', 'poster', 'genre', 'rating', 'release_date', 'status', 'duration')
+                ->orderBy('release_date', 'desc')
                 ->take(6)
                 ->get();
             
@@ -45,6 +52,7 @@ class HomeController extends Controller
                 'featuredMovie',
                 'nowShowingMovies',
                 'comingSoonMovies',
+                'endedMovies',
                 'promotions'
             );
         });

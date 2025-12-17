@@ -7,6 +7,12 @@ use App\Services\SeatHoldService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @OA\Tag(
+ *     name="Seats",
+ *     description="API endpoints for seat holding management"
+ * )
+ */
 class SeatHoldController extends Controller
 {
     protected $seatHoldService;
@@ -17,7 +23,31 @@ class SeatHoldController extends Controller
     }
 
     /**
-     * Hold a seat
+     * @OA\Post(
+     *     path="/api/seats/hold",
+     *     summary="Giữ chỗ ghế",
+     *     tags={"Seats"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"showtime_id", "seat_id"},
+     *             @OA\Property(property="showtime_id", type="integer", example=1),
+     *             @OA\Property(property="seat_id", type="integer", example=5)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Giữ chỗ thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=409, description="Ghế đã được giữ chỗ"),
+     *     @OA\Response(response=400, description="Lỗi validation")
+     * )
      */
     public function hold(Request $request): JsonResponse
     {
@@ -57,7 +87,22 @@ class SeatHoldController extends Controller
     }
 
     /**
-     * Release a seat
+     * @OA\Post(
+     *     path="/api/seats/release",
+     *     summary="Giải phóng ghế",
+     *     tags={"Seats"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"showtime_id", "seat_id"},
+     *             @OA\Property(property="showtime_id", type="integer", example=1),
+     *             @OA\Property(property="seat_id", type="integer", example=5)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Giải phóng thành công"),
+     *     @OA\Response(response=404, description="Ghế không được giữ chỗ")
+     * )
      */
     public function release(Request $request): JsonResponse
     {
@@ -85,7 +130,26 @@ class SeatHoldController extends Controller
     }
 
     /**
-     * Get all held seats for a showtime
+     * @OA\Get(
+     *     path="/api/seats/showtime/{showtimeId}/held",
+     *     summary="Lấy danh sách ghế đã được giữ chỗ",
+     *     tags={"Seats"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="showtimeId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
      */
     public function getHeldSeats(Request $request, int $showtimeId): JsonResponse
     {
@@ -98,7 +162,29 @@ class SeatHoldController extends Controller
     }
 
     /**
-     * Check seat hold status
+     * @OA\Post(
+     *     path="/api/seats/check-status",
+     *     summary="Kiểm tra trạng thái giữ chỗ ghế",
+     *     tags={"Seats"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"showtime_id", "seat_id"},
+     *             @OA\Property(property="showtime_id", type="integer", example=1),
+     *             @OA\Property(property="seat_id", type="integer", example=5)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="is_held", type="boolean", example=false),
+     *             @OA\Property(property="hold_info", type="object", nullable=true)
+     *         )
+     *     )
+     * )
      */
     public function checkStatus(Request $request): JsonResponse
     {

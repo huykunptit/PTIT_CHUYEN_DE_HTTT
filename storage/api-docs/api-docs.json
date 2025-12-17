@@ -1,0 +1,876 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Cinema Booking System API",
+        "description": "API documentation for Cinema Booking System",
+        "contact": {
+            "email": "support@cinemat.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "{protocol}://{host}",
+            "description": "API Server",
+            "variables": {
+                "protocol": {
+                    "enum": [
+                        "http",
+                        "https"
+                    ],
+                    "default": "http"
+                },
+                "host": {
+                    "default": "localhost:8089"
+                }
+            }
+        }
+    ],
+    "paths": {
+        "/api/movies/now-playing": {
+            "get": {
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Lấy danh sách phim đang chiếu",
+                "operationId": "7b824264c7197e682451673a98572178",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Số trang",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "description": "Ngôn ngữ",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "vi-VN"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy danh sách phim đang chiếu thành công"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                }
+            }
+        },
+        "/api/movies/upcoming": {
+            "get": {
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Lấy danh sách phim sắp chiếu",
+                "operationId": "ac3aec442fd49b864f67073f7af543c4",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "vi-VN"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                }
+            }
+        },
+        "/api/movies/popular": {
+            "get": {
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Lấy danh sách phim phổ biến",
+                "operationId": "e77d08ecceeb5d37263fb4884541d639",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "vi-VN"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                }
+            }
+        },
+        "/api/movies/{movieId}": {
+            "get": {
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Lấy chi tiết phim",
+                "operationId": "7896eaf5c7ada516b96a4456be372fb0",
+                "parameters": [
+                    {
+                        "name": "movieId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "vi-VN"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                }
+            }
+        },
+        "/api/movies/search": {
+            "get": {
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Tìm kiếm phim",
+                "operationId": "ef2b563a3ef02baa505461bbcac1e800",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "vi-VN"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "400": {
+                        "description": "Thiếu từ khóa tìm kiếm"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                }
+            }
+        },
+        "/api/movies/genres": {
+            "get": {
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Lấy danh sách thể loại phim",
+                "operationId": "b20597cba9bc0d02a049a8c12d63d91b",
+                "parameters": [
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "vi-VN"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                }
+            }
+        },
+        "/api/movies/genre/{genreId}": {
+            "get": {
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Lấy danh sách phim theo thể loại",
+                "operationId": "e088dc5fef7fd9fab51c08b196727c58",
+                "parameters": [
+                    {
+                        "name": "genreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "vi-VN"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                }
+            }
+        },
+        "/api/movies/clear-cache": {
+            "post": {
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Xóa cache phim",
+                "operationId": "6ae5d7d72e8bb66c9a31a32af95a763a",
+                "responses": {
+                    "200": {
+                        "description": "Thành công"
+                    }
+                }
+            }
+        },
+        "/api/search/autocomplete": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Tìm kiếm phim tự động (autocomplete)",
+                "operationId": "8d937666cf18a8158796086b1ef33646",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Từ khóa tìm kiếm (tối thiểu 2 ký tự)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "title": {
+                                                        "type": "string"
+                                                    },
+                                                    "genre": {
+                                                        "type": "string"
+                                                    },
+                                                    "poster_url": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "url": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Lấy danh sách thông báo của user",
+                "operationId": "6d56a555955089a73fdf3f7229e8ead8",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/unread-count": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Lấy số lượng thông báo chưa đọc",
+                "operationId": "f3e05b69d516049be949f02a45e0eedd",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{id}/read": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Đánh dấu thông báo đã đọc",
+                "operationId": "89d94089af487b4bafdd6b9db9c55478",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/mark-all-read": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Đánh dấu tất cả thông báo đã đọc",
+                "operationId": "2c05d18629d588cb3c35be1ae1577214",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/promotions/validate": {
+            "post": {
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Xác thực và áp dụng mã giảm giá",
+                "operationId": "77d02cd7641fff6c5875bfad0f6ea2e1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code",
+                                    "booking_id"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "SUMMER2024"
+                                    },
+                                    "booking_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mã giảm giá hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "promotion": {
+                                                    "type": "object"
+                                                },
+                                                "discount_amount": {
+                                                    "type": "number"
+                                                },
+                                                "total_amount": {
+                                                    "type": "number"
+                                                },
+                                                "final_amount": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Mã giảm giá không hợp lệ"
+                    },
+                    "403": {
+                        "description": "Không có quyền"
+                    },
+                    "404": {
+                        "description": "Mã giảm giá không tồn tại"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/seats/hold": {
+            "post": {
+                "tags": [
+                    "Seats"
+                ],
+                "summary": "Giữ chỗ ghế",
+                "operationId": "a9556fe67198ea52bba14ef8faa4b8d5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "showtime_id",
+                                    "seat_id"
+                                ],
+                                "properties": {
+                                    "showtime_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "seat_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Giữ chỗ thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Ghế đã được giữ chỗ"
+                    },
+                    "400": {
+                        "description": "Lỗi validation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/seats/release": {
+            "post": {
+                "tags": [
+                    "Seats"
+                ],
+                "summary": "Giải phóng ghế",
+                "operationId": "40f6cf57161e03a7fddb223b284be3ce",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "showtime_id",
+                                    "seat_id"
+                                ],
+                                "properties": {
+                                    "showtime_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "seat_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Giải phóng thành công"
+                    },
+                    "404": {
+                        "description": "Ghế không được giữ chỗ"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/seats/showtime/{showtimeId}/held": {
+            "get": {
+                "tags": [
+                    "Seats"
+                ],
+                "summary": "Lấy danh sách ghế đã được giữ chỗ",
+                "operationId": "534562dbdc40e27d10f066ed4956871c",
+                "parameters": [
+                    {
+                        "name": "showtimeId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/seats/check-status": {
+            "post": {
+                "tags": [
+                    "Seats"
+                ],
+                "summary": "Kiểm tra trạng thái giữ chỗ ghế",
+                "operationId": "61f88a763807607e4e862a640e1a4264",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "showtime_id",
+                                    "seat_id"
+                                ],
+                                "properties": {
+                                    "showtime_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "seat_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "is_held": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "hold_info": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Search",
+            "description": "API endpoints for movie search"
+        },
+        {
+            "name": "Notifications",
+            "description": "API endpoints for user notifications"
+        },
+        {
+            "name": "Promotions",
+            "description": "API endpoints for promotion code validation"
+        },
+        {
+            "name": "Seats",
+            "description": "API endpoints for seat holding management"
+        },
+        {
+            "name": "Movies",
+            "description": "Movies"
+        }
+    ]
+}

@@ -32,43 +32,81 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('staff.checkin.checkin') }}" class="mt-4">
-                    @csrf
-                    
-                    <div class="mb-4 text-center">
-                        <i class="fas fa-ticket-alt text-primary" style="font-size: 4rem;"></i>
-                        <p class="text-muted mt-3">Nhập mã vé để check-in (Staff có thể check-in bất kỳ lúc nào)</p>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="ticket_code" class="form-label">
-                            <strong>Mã vé</strong> <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" 
-                               class="form-control form-control-lg text-center @error('ticket_code') is-invalid @enderror" 
-                               id="ticket_code" 
-                               name="ticket_code" 
-                               placeholder="Nhập mã vé (VD: TK12345678)"
-                               value="{{ old('ticket_code') }}"
-                               maxlength="10"
-                               required
-                               autofocus
-                               style="letter-spacing: 2px; font-weight: bold; text-transform: uppercase;">
-                        @error('ticket_code')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-text text-muted mt-2">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Mã vé bao gồm 10 ký tự (VD: TK12345678)
-                        </small>
-                    </div>
-
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-check-circle me-2"></i>Check-in
+                <!-- Tabs để chuyển đổi giữa Quét QR và Nhập mã -->
+                <ul class="nav nav-tabs mb-4" id="checkinTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="scan-tab" data-bs-toggle="tab" data-bs-target="#scan" type="button" role="tab">
+                            <i class="fas fa-camera me-2"></i>Quét QR Code
                         </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
+                            <i class="fas fa-keyboard me-2"></i>Nhập mã thủ công
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="checkinTabContent">
+                    <!-- Tab Quét QR Code -->
+                    <div class="tab-pane fade show active" id="scan" role="tabpanel">
+                        <div class="mb-4 text-center">
+                            <i class="fas fa-qrcode text-primary" style="font-size: 4rem;"></i>
+                            <p class="text-muted mt-3">Quét mã QR trên vé để check-in</p>
+                        </div>
+
+                        <!-- Camera container -->
+                        <div class="mb-4">
+                            <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+                            <div id="qr-reader-results" class="mt-3"></div>
+                        </div>
+
+                        <!-- Hidden form để submit sau khi quét -->
+                        <form method="POST" action="{{ route('staff.checkin.checkin') }}" id="scanForm" style="display: none;">
+                            @csrf
+                            <input type="hidden" name="ticket_code" id="scanned_ticket_code">
+                        </form>
                     </div>
-                </form>
+
+                    <!-- Tab Nhập mã thủ công -->
+                    <div class="tab-pane fade" id="manual" role="tabpanel">
+                        <form method="POST" action="{{ route('staff.checkin.checkin') }}" class="mt-4">
+                            @csrf
+                            
+                            <div class="mb-4 text-center">
+                                <i class="fas fa-ticket-alt text-primary" style="font-size: 4rem;"></i>
+                                <p class="text-muted mt-3">Nhập mã vé để check-in (Staff có thể check-in bất kỳ lúc nào)</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="ticket_code" class="form-label">
+                                    <strong>Mã vé</strong> <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg text-center @error('ticket_code') is-invalid @enderror" 
+                                       id="ticket_code" 
+                                       name="ticket_code" 
+                                       placeholder="Nhập mã vé (VD: TK12345678)"
+                                       value="{{ old('ticket_code') }}"
+                                       maxlength="10"
+                                       required
+                                       style="letter-spacing: 2px; font-weight: bold; text-transform: uppercase;">
+                                @error('ticket_code')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Mã vé bao gồm 10 ký tự (VD: TK12345678)
+                                </small>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-check-circle me-2"></i>Check-in
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -88,26 +126,162 @@
     </div>
 </div>
 
+<!-- QR Code Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
 <style>
     #ticket_code {
         font-family: 'Courier New', monospace;
+    }
+    
+    #qr-reader {
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    #qr-reader__dashboard_section {
+        background: #f8f9fa;
+        padding: 15px;
+    }
+    
+    #qr-reader__camera_selection {
+        margin-bottom: 10px;
+    }
+    
+    .scanning-indicator {
+        text-align: center;
+        padding: 10px;
+        background: #e3f2fd;
+        border-radius: 4px;
+        margin-bottom: 10px;
     }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ticketInput = document.getElementById('ticket_code');
+    let html5QrcodeScanner = null;
+    let isScanning = false;
     
-    // Auto uppercase
-    ticketInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
+    // Auto uppercase cho input thủ công
+    if (ticketInput) {
+        ticketInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+        
+        // Only allow alphanumeric
+        ticketInput.addEventListener('keypress', function(e) {
+            if (!/[A-Z0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete') {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    // Xử lý khi chuyển tab
+    const scanTab = document.getElementById('scan-tab');
+    const manualTab = document.getElementById('manual-tab');
+    const scanPane = document.getElementById('scan');
+    const manualPane = document.getElementById('manual');
+    
+    // Khi click vào tab Quét QR
+    scanTab.addEventListener('shown.bs.tab', function() {
+        startQRScanner();
     });
     
-    // Only allow alphanumeric
-    ticketInput.addEventListener('keypress', function(e) {
-        if (!/[A-Z0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete') {
-            e.preventDefault();
+    // Khi click vào tab Nhập mã
+    manualTab.addEventListener('shown.bs.tab', function() {
+        stopQRScanner();
+    });
+    
+    // Khởi động scanner khi trang load (nếu đang ở tab scan)
+    if (scanPane.classList.contains('active')) {
+        startQRScanner();
+    }
+    
+    function startQRScanner() {
+        if (isScanning || html5QrcodeScanner) {
+            return;
         }
+        
+        isScanning = true;
+        const qrReaderElement = document.getElementById('qr-reader');
+        
+        // Tạo scanner instance
+        html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        
+        // Cấu hình scanner
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        };
+        
+        // Bắt đầu quét
+        html5QrcodeScanner.start(
+            { facingMode: "environment" }, // Ưu tiên camera sau
+            config,
+            onScanSuccess,
+            onScanError
+        ).catch(err => {
+            console.error("Không thể khởi động camera:", err);
+            document.getElementById('qr-reader-results').innerHTML = 
+                '<div class="alert alert-danger">Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập camera hoặc sử dụng chế độ nhập mã thủ công.</div>';
+            isScanning = false;
+        });
+    }
+    
+    function stopQRScanner() {
+        if (html5QrcodeScanner && isScanning) {
+            html5QrcodeScanner.stop().then(() => {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+                isScanning = false;
+                document.getElementById('qr-reader-results').innerHTML = '';
+            }).catch(err => {
+                console.error("Lỗi khi dừng scanner:", err);
+            });
+        }
+    }
+    
+    function onScanSuccess(decodedText, decodedResult) {
+        // Dừng scanner sau khi quét thành công
+        stopQRScanner();
+        
+        // Làm sạch mã (loại bỏ khoảng trắng, chuyển thành chữ hoa)
+        const ticketCode = decodedText.trim().toUpperCase();
+        
+        // Validate mã vé (10 ký tự)
+        if (ticketCode.length !== 10) {
+            document.getElementById('qr-reader-results').innerHTML = 
+                '<div class="alert alert-warning">Mã QR không hợp lệ. Mã vé phải có 10 ký tự.</div>';
+            // Khởi động lại scanner sau 2 giây
+            setTimeout(() => {
+                if (scanPane.classList.contains('active')) {
+                    startQRScanner();
+                }
+            }, 2000);
+            return;
+        }
+        
+        // Hiển thị thông báo đang xử lý
+        document.getElementById('qr-reader-results').innerHTML = 
+            '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý mã vé: <strong>' + ticketCode + '</strong></div>';
+        
+        // Set giá trị vào hidden input và submit form
+        document.getElementById('scanned_ticket_code').value = ticketCode;
+        document.getElementById('scanForm').submit();
+    }
+    
+    function onScanError(errorMessage) {
+        // Không hiển thị lỗi liên tục, chỉ log
+        // console.log("Scan error:", errorMessage);
+    }
+    
+    // Cleanup khi rời khỏi trang
+    window.addEventListener('beforeunload', function() {
+        stopQRScanner();
     });
 });
 </script>

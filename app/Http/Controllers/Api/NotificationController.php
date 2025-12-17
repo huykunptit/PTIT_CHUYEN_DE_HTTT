@@ -6,10 +6,26 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @OA\Tag(
+ *     name="Notifications",
+ *     description="API endpoints for user notifications"
+ * )
+ */
 class NotificationController extends Controller
 {
     /**
-     * Get user notifications
+     * @OA\Get(
+     *     path="/api/notifications",
+     *     summary="Lấy danh sách thông báo của user",
+     *     tags={"Notifications"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(type="array", @OA\Items(type="object"))
+     *     )
+     * )
      */
     public function index(Request $request)
     {
@@ -33,7 +49,19 @@ class NotificationController extends Controller
     }
 
     /**
-     * Get unread notifications count
+     * @OA\Get(
+     *     path="/api/notifications/unread-count",
+     *     summary="Lấy số lượng thông báo chưa đọc",
+     *     tags={"Notifications"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="count", type="integer", example=5)
+     *         )
+     *     )
+     * )
      */
     public function unreadCount()
     {
@@ -45,7 +73,25 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark notification as read
+     * @OA\Post(
+     *     path="/api/notifications/{id}/read",
+     *     summary="Đánh dấu thông báo đã đọc",
+     *     tags={"Notifications"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     )
+     * )
      */
     public function markAsRead($id)
     {
@@ -61,7 +107,19 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark all notifications as read
+     * @OA\Post(
+     *     path="/api/notifications/mark-all-read",
+     *     summary="Đánh dấu tất cả thông báo đã đọc",
+     *     tags={"Notifications"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     )
+     * )
      */
     public function markAllAsRead()
     {

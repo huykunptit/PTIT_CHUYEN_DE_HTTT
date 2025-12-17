@@ -9,10 +9,46 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @OA\Tag(
+ *     name="Promotions",
+ *     description="API endpoints for promotion code validation"
+ * )
+ */
 class PromotionController extends Controller
 {
     /**
-     * Validate and apply promotion code
+     * @OA\Post(
+     *     path="/api/promotions/validate",
+     *     summary="Xác thực và áp dụng mã giảm giá",
+     *     tags={"Promotions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"code", "booking_id"},
+     *             @OA\Property(property="code", type="string", example="SUMMER2024"),
+     *             @OA\Property(property="booking_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Mã giảm giá hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="promotion", type="object"),
+     *                 @OA\Property(property="discount_amount", type="number"),
+     *                 @OA\Property(property="total_amount", type="number"),
+     *                 @OA\Property(property="final_amount", type="number")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Mã giảm giá không hợp lệ"),
+     *     @OA\Response(response=403, description="Không có quyền"),
+     *     @OA\Response(response=404, description="Mã giảm giá không tồn tại")
+     * )
      */
     public function validate(Request $request): JsonResponse
     {

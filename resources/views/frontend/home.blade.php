@@ -2,10 +2,29 @@
 
 @section('title', 'Trang chủ - Cinema')
 
+@push('styles')
+<style>
+    .movie-card-hover:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s ease;
+    }
+    
+    .movie-card-hover:hover .movie-poster {
+        transform: scale(1.1);
+    }
+</style>
+@endpush
+
 @section('content')
 <!-- Hero Section -->
 @if($featuredMovie)
-<section class="hero-section mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 500px; display: flex; align-items: center; position: relative; overflow: hidden;">
+<section class="hero-section mb-5" style="min-height: 500px; display: flex; align-items: center; position: relative; overflow: hidden; background: #1a1a1a;">
+    @if($featuredMovie->poster)
+        <img src="{{ $featuredMovie->poster_url }}" 
+             alt="{{ $featuredMovie->title }}" 
+             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; filter: blur(3px); z-index: 0;">
+    @endif
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%); z-index: 1;"></div>
     <div class="container position-relative" style="z-index: 2;">
         <div class="row align-items-center">
             <div class="col-md-6 text-white">
@@ -22,7 +41,6 @@
             </div>
         </div>
     </div>
-    <div style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; background: rgba(0,0,0,0.3); z-index: 1;"></div>
 </section>
 @endif
 
@@ -39,19 +57,18 @@
             @forelse($nowShowingMovies as $movie)
             <div class="col-6 col-md-3 col-lg-2">
                 <div class="card border-0 shadow-sm h-100 movie-card-hover">
-                    <div class="position-relative" style="height: 250px; overflow: hidden;">
-                        @if($movie->poster_url)
+                    <div class="position-relative" style="height: 250px; overflow: hidden; background: #e0e0e0;">
+                        @if($movie->poster && $movie->poster_url)
                             <img src="{{ $movie->poster_url }}" 
                                  alt="{{ $movie->title }}" 
                                  class="card-img-top movie-poster" 
-                                 style="height: 100%; width: 100%; object-fit: cover; transition: transform 0.3s ease;"
+                                 style="height: 100%; width: 100%; object-fit: cover; transition: transform 0.3s ease; position: absolute; top: 0; left: 0;"
                                  loading="lazy"
-                                 onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.display='none'; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center h-100\'><i class=\'fas fa-film text-white\' style=\'font-size: 3rem; opacity: 0.5;\'></i></div>';">
-                        @else
-                            <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                <i class="fas fa-film text-white" style="font-size: 3rem; opacity: 0.5;"></i>
-                            </div>
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         @endif
+                        <div class="d-flex align-items-center justify-content-center h-100" style="display: {{ ($movie->poster && $movie->poster_url) ? 'none' : 'flex' }};">
+                            <i class="fas fa-film text-muted" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
                     </div>
                     <div class="card-body">
                         <h6 class="card-title mb-2">{{ Str::limit($movie->title, 30) }}</h6>
@@ -142,19 +159,18 @@
             @forelse($comingSoonMovies as $movie)
             <div class="col-6 col-md-3 col-lg-2">
                 <div class="card border-0 shadow-sm h-100 movie-card-hover">
-                    <div class="position-relative" style="height: 250px; overflow: hidden;">
-                        @if($movie->poster_url)
+                    <div class="position-relative" style="height: 250px; overflow: hidden; background: #e0e0e0;">
+                        @if($movie->poster && $movie->poster_url)
                             <img src="{{ $movie->poster_url }}" 
                                  alt="{{ $movie->title }}" 
                                  class="card-img-top movie-poster" 
-                                 style="height: 100%; width: 100%; object-fit: cover; transition: transform 0.3s ease;"
+                                 style="height: 100%; width: 100%; object-fit: cover; transition: transform 0.3s ease; position: absolute; top: 0; left: 0;"
                                  loading="lazy"
-                                 onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.display='none'; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center h-100\'><i class=\'fas fa-film text-white\' style=\'font-size: 3rem; opacity: 0.5;\'></i></div>';">
-                        @else
-                            <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                <i class="fas fa-film text-white" style="font-size: 3rem; opacity: 0.5;"></i>
-                            </div>
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         @endif
+                        <div class="d-flex align-items-center justify-content-center h-100" style="display: {{ ($movie->poster && $movie->poster_url) ? 'none' : 'flex' }};">
+                            <i class="fas fa-film text-muted" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
                     </div>
                     <div class="card-body">
                         <h6 class="card-title mb-2">{{ Str::limit($movie->title, 30) }}</h6>
@@ -174,5 +190,46 @@
             @endforelse
         </div>
     </section>
+
+    <!-- Phim chưa chiếu -->
+    @if(isset($endedMovies) && $endedMovies->count() > 0)
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Phim chưa chiếu</h2>
+            <a href="{{ route('movies.index') }}?status=ENDED" class="text-decoration-none">
+                Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="row g-4">
+            @foreach($endedMovies as $movie)
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card border-0 shadow-sm h-100 movie-card-hover">
+                    <div class="position-relative" style="height: 250px; overflow: hidden; background: #e0e0e0;">
+                        @if($movie->poster && $movie->poster_url)
+                            <img src="{{ $movie->poster_url }}" 
+                                 alt="{{ $movie->title }}" 
+                                 class="card-img-top movie-poster" 
+                                 style="height: 100%; width: 100%; object-fit: cover; transition: transform 0.3s ease; position: absolute; top: 0; left: 0;"
+                                 loading="lazy"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        @endif
+                        <div class="d-flex align-items-center justify-content-center h-100" style="display: {{ ($movie->poster && $movie->poster_url) ? 'none' : 'flex' }};">
+                            <i class="fas fa-film text-muted" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title mb-2">{{ Str::limit($movie->title, 30) }}</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">{{ $movie->genre }}</small>
+                            <span class="badge bg-secondary">{{ $movie->release_date->format('Y') }}</span>
+                        </div>
+                        <span class="badge bg-secondary w-100">Đã kết thúc</span>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </section>
+    @endif
 </div>
 @endsection
