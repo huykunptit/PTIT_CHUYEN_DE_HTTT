@@ -67,4 +67,4 @@ RUN mkdir -p /var/www/html/storage/app/public \
 # Set permissions
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-CMD ["php-fpm", "-y", "/usr/local/etc/php-fpm.conf", "-R"]
+CMD sh -c "php artisan migrate --force && php artisan db:seed --force && php artisan queue:work"
