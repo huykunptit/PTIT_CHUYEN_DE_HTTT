@@ -62,9 +62,7 @@
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
         "post-install-cmd": [
-            "php artisan config:cache",
-            "php artisan route:cache",
-            "php artisan view:cache"
+            "@php -r \"if (getenv('APP_ENV') === 'production') { passthru('php artisan config:cache'); passthru('php artisan route:cache'); }\""
         ],
         "compile": [
             "@php artisan config:cache",
