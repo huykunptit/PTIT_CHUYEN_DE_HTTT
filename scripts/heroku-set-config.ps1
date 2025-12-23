@@ -59,7 +59,7 @@ Set-HerokuVar QUEUE_CONNECTION "redis"
 Set-HerokuVar MYSQL_ATTR_SSL_CA "/etc/ssl/certs/ca-certificates.crt"
 
 # 3) Unset Docker-only DB/Redis vars that can break Heroku connectivity
-Unset-HerokuVar @("DB_HOST","DB_PORT","DB_DATABASE","DB_USERNAME","DB_PASSWORD","REDIS_HOST","REDIS_PORT","REDIS_PASSWORD")
+Unset-HerokuVar @("DB_HOST","DB_PORT","DB_DATABASE","DB_USERNAME","DB_PASSWORD","REDIS_HOST","REDIS_PORT","REDIS_PASSWORD","MEMCACHED_HOST")
 
 # 4) Map JawsDB/ClearDB URL to DATABASE_URL if present
 $dbUrl = heroku config:get JAWSDB_URL -a $AppName 2>$null
@@ -70,6 +70,12 @@ if (-not [string]::IsNullOrWhiteSpace($dbUrl)) {
     if (-not [string]::IsNullOrWhiteSpace($dbUrl)) {
         Set-HerokuVar DATABASE_URL $dbUrl
     }
+}
+
+# 5) Map Heroku Redis URL to REDIS_URL if present
+$redisUrl = heroku config:get REDIS_URL -a $AppName 2>$null
+if ([string]::IsNullOrWhiteSpace($redisUrl)) {
+    Write-Warning "REDIS_URL not found. Install Heroku Redis with: heroku addons:create heroku-redis:mini -a $AppName"
 }
 
 Write-Host "Done. Config Vars updated for app '$AppName'."

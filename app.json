@@ -1,0 +1,68 @@
+{
+  "name": "Cinemat - Cinema Booking API",
+  "description": "Laravel Cinema Booking API",
+  "keywords": ["laravel", "cinema", "booking", "api"],
+  "repository": "https://github.com/your-username/cinemat",
+  "scripts": {
+    "postdeploy": "php artisan migrate --force && php artisan db:seed --force"
+  },
+  "env": {
+    "APP_NAME": {
+      "description": "Application name",
+      "value": "Cinemat"
+    },
+    "APP_ENV": {
+      "description": "Application environment",
+      "value": "production"
+    },
+    "APP_DEBUG": {
+      "description": "Debug mode",
+      "value": "false"
+    },
+    "APP_KEY": {
+      "description": "Application encryption key",
+      "generator": "secret"
+    },
+    "APP_URL": {
+      "description": "Application URL",
+      "value": "https://your-app.herokuapp.com"
+    },
+    "LOG_CHANNEL": {
+      "description": "Log channel",
+      "value": "errorlog"
+    },
+    "DB_CONNECTION": {
+      "description": "Database connection type",
+      "value": "mysql"
+    },
+    "CACHE_DRIVER": {
+      "description": "Cache driver",
+      "value": "file"
+    },
+    "SESSION_DRIVER": {
+      "description": "Session driver",
+      "value": "cookie"
+    },
+    "QUEUE_CONNECTION": {
+      "description": "Queue connection",
+      "value": "sync"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/php"
+    }
+  ],
+  "addons": [
+    {
+      "plan": "jawsdb:kitefin",
+      "as": "DATABASE"
+    }
+  ]
+}
